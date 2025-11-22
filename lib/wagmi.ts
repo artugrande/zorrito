@@ -14,7 +14,11 @@ const celoSepolia = {
   },
   rpcUrls: {
     default: {
-      http: ['https://sepolia-forno.celo.org'],
+      http: [
+        'https://celo-sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161', // Infura public endpoint
+        'https://rpc.ankr.com/celo_sepolia', // Ankr public endpoint
+        'https://sepolia-forno.celo.org', // Fallback to original
+      ],
     },
   },
   blockExplorers: {
@@ -33,7 +37,10 @@ export const config = createConfig({
     metaMask(),
   ],
   transports: {
-    [celoSepolia.id]: http(),
+    [celoSepolia.id]: http({
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
   },
 })
 
