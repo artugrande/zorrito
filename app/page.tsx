@@ -6,6 +6,9 @@ import { ToolsDisclaimer } from "@/components/tools-disclaimer"
 import { CreateFox } from "@/components/create-fox"
 import { FoxHome } from "@/components/fox-home"
 
+// Force dynamic rendering to avoid prerendering issues
+export const dynamic = 'force-dynamic'
+
 type Screen = "connect" | "disclaimer" | "create" | "home"
 type ConnectionType = "wallet" | "farcaster"
 
