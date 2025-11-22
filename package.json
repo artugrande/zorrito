@@ -12,6 +12,7 @@
     "@ai-sdk/gateway": "latest",
     "@farcaster/auth-client": "^0.7.0",
     "@farcaster/auth-kit": "^0.8.1",
+    "@farcaster/miniapp-sdk": "^0.2.1",
     "@metamask/sdk": "^0.33.1",
     "@paper-design/shaders-react": "latest",
     "@radix-ui/react-accordion": "latest",

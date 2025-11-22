@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { ToolsDisclaimer } from "@/components/tools-disclaimer"
 import { CreateFox } from "@/components/create-fox"
 import { FoxHome } from "@/components/fox-home"
+import { FarcasterReady } from "@/components/farcaster-ready"
 
 // Force dynamic rendering to avoid prerendering issues
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black">
+      <FarcasterReady />
       {currentScreen === "connect" && <ConnectWallet onConnect={handleConnectionTypeSelected} />}
       {currentScreen === "disclaimer" && (
         <ToolsDisclaimer onContinue={handleDisclaimerAcknowledged} connectionType={connectionType} />
