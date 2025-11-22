@@ -20,7 +20,9 @@ import {
   Flag as Flask,
   Download,
   Share2,
+  Wallet,
 } from "lucide-react"
+import { useAccount, useDisconnect } from "wagmi"
 import { Input } from "@/components/ui/input"
 import { WinnersModal } from "@/components/winners-modal"
 import { RankingsModal } from "@/components/rankings-modal"
@@ -34,6 +36,12 @@ interface FoxHomeProps {
 }
 
 export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
+  const { address: wagmiAddress } = useAccount()
+  const { disconnect } = useDisconnect()
+  
+  // Use wagmi address if available, otherwise fallback to prop
+  const displayAddress = wagmiAddress || walletAddress
+
   const [timeUntilMeal, setTimeUntilMeal] = useState({
     days: 0,
     hours: 3,
@@ -224,9 +232,19 @@ Start playing 👉 https://zorrito.vercel.app
                     {status}
                   </Badge>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-[#F28C33]">Keep your</p>
-                  <p className="text-2xl font-bold text-[#F28C33]">fox alive!</p>
+                <div className="text-right flex flex-col items-end gap-2">
+                  <div>
+                    <p className="text-2xl font-bold text-[#F28C33]">Keep your</p>
+                    <p className="text-2xl font-bold text-[#F28C33]">fox alive!</p>
+                  </div>
+                  {displayAddress && displayAddress !== "0x0000000000000000000000000000000000000000" && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F28C33]/10 border border-[#F28C33] rounded-full">
+                      <Wallet className="h-3.5 w-3.5 text-[#F28C33]" />
+                      <span className="text-xs font-semibold text-[#F28C33]">
+                        {displayAddress.slice(0, 6)}...{displayAddress.slice(-4)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
@@ -523,7 +541,12 @@ Start playing 👉 https://zorrito.vercel.app
             Withdraw Funds
           </Button>
           <Button
-            onClick={onLogout}
+            onClick={() => {
+              disconnect()
+              if (onLogout) {
+                onLogout()
+              }
+            }}
             variant="outline"
             className="h-12 border-[#E8913F] bg-white/95 backdrop-blur-sm text-gray-700 hover:bg-gray-100"
           >
