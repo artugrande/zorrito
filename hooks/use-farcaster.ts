@@ -5,6 +5,7 @@ import { useSignIn, useProfile } from '@farcaster/auth-kit'
 /**
  * Hook to access Farcaster authentication state and methods
  * Use this hook in your components to interact with Farcaster
+ * IMPORTANT: Only use in client-side components (marked with 'use client')
  */
 export function useFarcaster() {
   const { signIn, data: signInData, isPending: isSigningIn } = useSignIn()
