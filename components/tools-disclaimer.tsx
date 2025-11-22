@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ChevronRight } from "lucide-react"
+import { useConnect, useAccount } from "wagmi"
 
 interface ToolsDisclaimerProps {
-  onContinue: () => void
+  onContinue: (address: string) => void
 }
 
 const tools = [
@@ -42,6 +43,54 @@ const tools = [
 
 export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const { connect, connectors, isPending } = useConnect()
+  const { address, isConnected } = useAccount()
+
+  // Auto-continue when wallet is connected
+  useEffect(() => {
+    if (isConnected && address) {
+      setIsConnecting(false)
+      onContinue(address)
+    }
+  }, [isConnected, address, onContinue])
+
+  const handleContinue = async () => {
+    if (!acknowledged) return
+
+    setIsConnecting(true)
+
+    // Check if wallet is available
+    const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
+    
+    // Try to connect with injected wallet (MetaMask, etc.)
+    const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
+    
+    if (injectedConnector && hasWallet) {
+      try {
+        const result = await connect({ connector: injectedConnector })
+        // If connection is successful, useEffect will handle calling onContinue
+        if (result?.error) {
+          throw result.error
+        }
+      } catch (error) {
+        console.error("Failed to connect wallet:", error)
+        setIsConnecting(false)
+        // Fallback to mock for development
+        setTimeout(() => {
+          const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
+          onContinue(mockAddress)
+        }, 500)
+      }
+    } else {
+      // Fallback to mock if no wallet found (for development/demo)
+      setTimeout(() => {
+        const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
+        onContinue(mockAddress)
+        setIsConnecting(false)
+      }, 1500)
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 page-background">
@@ -111,11 +160,11 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
 
           {/* Continue Button */}
           <Button
-            onClick={onContinue}
-            disabled={!acknowledged}
+            onClick={handleContinue}
+            disabled={!acknowledged || isConnecting || isPending}
             className="w-full h-12 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Continue
+            {isConnecting || isPending ? "Connecting Wallet..." : "Continue"}
             <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         </div>

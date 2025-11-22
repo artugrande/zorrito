@@ -14,11 +14,12 @@ export default function Home() {
   const [foxData, setFoxData] = useState<any>(null)
 
   const handleWalletConnected = (address: string) => {
-    setWalletAddress(address)
+    // Just advance to disclaimer, wallet will be connected there
     setCurrentScreen("disclaimer")
   }
 
-  const handleDisclaimerAcknowledged = () => {
+  const handleDisclaimerAcknowledged = (address: string) => {
+    setWalletAddress(address)
     setCurrentScreen("create")
   }
 

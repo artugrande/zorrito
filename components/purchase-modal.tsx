@@ -92,15 +92,15 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   if (!item) return null
 
   const totalCost = (item.price * item.quantity).toFixed(2)
-  // Convert cUSD to Wei (cUSD uses 18 decimals)
-  const totalCostInWei = parseUnits(totalCost, 18)
+  // Use fixed 0.001 CELO for all transactions (to save faucet)
+  const transactionValue = parseUnits("0.001", 18)
 
   const handleConfirmPurchase = () => {
     setError(null)
     try {
       sendTransaction({
         to: TREASURY_WALLET_ADDRESS as `0x${string}`,
-        value: totalCostInWei,
+        value: transactionValue,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send transaction")

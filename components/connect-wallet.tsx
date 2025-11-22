@@ -1,20 +1,16 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Wallet } from "lucide-react"
-import { useConnect, useAccount } from "wagmi"
 
 interface ConnectWalletProps {
   onConnect: (address: string) => void
 }
 
 export function ConnectWallet({ onConnect }: ConnectWalletProps) {
-  const [isConnecting, setIsConnecting] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const { connect, connectors, isPending } = useConnect()
-  const { address, isConnected } = useAccount()
 
   useEffect(() => {
     if (videoRef.current) {
@@ -24,54 +20,11 @@ export function ConnectWallet({ onConnect }: ConnectWalletProps) {
     }
   }, [])
 
-  // Auto-connect when wallet is connected
-  useEffect(() => {
-    if (isConnected && address) {
-      setIsConnecting(false)
-      onConnect(address)
-    }
-  }, [isConnected, address, onConnect])
-
-  const handleConnect = async () => {
-    setIsConnecting(true)
-
-    if (videoRef.current) {
-      videoRef.current.play().catch((error) => {
-        console.log("[v0] Video play failed:", error)
-      })
-    }
-
-    // Check if wallet is available
-    const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
-    
-    // Try to connect with injected wallet (MetaMask, etc.)
-    const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
-    
-    if (injectedConnector && hasWallet) {
-      try {
-        const result = await connect({ connector: injectedConnector })
-        // If connection is successful, useEffect will handle calling onConnect
-        if (result?.error) {
-          throw result.error
-        }
-      } catch (error) {
-        console.error("Failed to connect wallet:", error)
-        setIsConnecting(false)
-        // Fallback to mock for development
-        setTimeout(() => {
-          const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
-          onConnect(mockAddress)
-        }, 500)
-      }
-    } else {
-      // Fallback to mock if no wallet found (for development/demo)
-      // This allows the app to work without a real wallet
-      setTimeout(() => {
-        const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
-        onConnect(mockAddress)
-        setIsConnecting(false)
-      }, 1500)
-    }
+  // Just advance to disclaimer without connecting wallet
+  const handleContinue = () => {
+    // Use a placeholder address for now, wallet will be connected in disclaimer
+    const placeholderAddress = "0x0000000000000000000000000000000000000000"
+    onConnect(placeholderAddress)
   }
 
   return (
@@ -100,12 +53,11 @@ export function ConnectWallet({ onConnect }: ConnectWalletProps) {
           </div>
 
           <Button
-            onClick={handleConnect}
-            disabled={isConnecting || isPending}
+            onClick={handleContinue}
             className="w-full h-14 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222]"
           >
             <Wallet className="mr-2 h-5 w-5" />
-            {isConnecting || isPending ? "Connecting..." : "Connect Wallet"}
+            Continue
           </Button>
         </div>
       </Card>
