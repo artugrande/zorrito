@@ -21,8 +21,10 @@ import {
   Download,
   Share2,
   Wallet,
+  MessageCircle,
 } from "lucide-react"
 import { useAccount, useDisconnect } from "wagmi"
+import { useFarcaster } from "@/hooks/use-farcaster"
 import { Input } from "@/components/ui/input"
 import { WinnersModal } from "@/components/winners-modal"
 import { RankingsModal } from "@/components/rankings-modal"
@@ -38,9 +40,17 @@ interface FoxHomeProps {
 export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
   const { address: wagmiAddress } = useAccount()
   const { disconnect } = useDisconnect()
+  const { isAuthenticated: isFarcasterConnected, signOut: farcasterSignOut, username: farcasterUsername } = useFarcaster()
+  
+  // Detect connection type
+  const isFarcasterUser = walletAddress?.startsWith("farcaster:")
+  const isWalletUser = wagmiAddress || (walletAddress && !isFarcasterUser)
   
   // Use wagmi address if available, otherwise fallback to prop
-  const displayAddress = wagmiAddress || walletAddress
+  // For Farcaster users, show username or FID
+  const displayAddress = isFarcasterUser 
+    ? (farcasterUsername || walletAddress.replace("farcaster:", "FID: "))
+    : (wagmiAddress || walletAddress)
 
   const [timeUntilMeal, setTimeUntilMeal] = useState({
     days: 0,
@@ -237,11 +247,22 @@ Start playing 👉 https://zorrito.vercel.app
                     <p className="text-2xl font-bold text-[#F28C33]">Keep your</p>
                     <p className="text-2xl font-bold text-[#F28C33]">fox alive!</p>
                   </div>
-                  {displayAddress && displayAddress !== "0x0000000000000000000000000000000000000000" && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F28C33]/10 border border-[#F28C33] rounded-full">
-                      <Wallet className="h-3.5 w-3.5 text-[#F28C33]" />
-                      <span className="text-xs font-semibold text-[#F28C33]">
-                        {displayAddress.slice(0, 6)}...{displayAddress.slice(-4)}
+                  {displayAddress && displayAddress !== "0x0000000000000000000000000000000000000000" && !displayAddress.startsWith("farcaster:0x") && (
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
+                      isFarcasterUser 
+                        ? 'bg-[#8A63D2]/10 border border-[#8A63D2]' 
+                        : 'bg-[#F28C33]/10 border border-[#F28C33]'
+                    }`}>
+                      {isFarcasterUser ? (
+                        <MessageCircle className="h-3.5 w-3.5 text-[#8A63D2]" />
+                      ) : (
+                        <Wallet className="h-3.5 w-3.5 text-[#F28C33]" />
+                      )}
+                      <span className={`text-xs font-semibold ${isFarcasterUser ? 'text-[#8A63D2]' : 'text-[#F28C33]'}`}>
+                        {isFarcasterUser 
+                          ? (farcasterUsername || displayAddress.replace("farcaster:", "@"))
+                          : `${displayAddress.slice(0, 6)}...${displayAddress.slice(-4)}`
+                        }
                       </span>
                     </div>
                   )}
@@ -542,7 +563,12 @@ Start playing 👉 https://zorrito.vercel.app
           </Button>
           <Button
             onClick={() => {
-              disconnect()
+              // Disconnect based on connection type
+              if (isFarcasterUser && isFarcasterConnected) {
+                farcasterSignOut()
+              } else if (isWalletUser) {
+                disconnect()
+              }
               if (onLogout) {
                 onLogout()
               }

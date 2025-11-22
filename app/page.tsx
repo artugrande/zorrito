@@ -7,19 +7,22 @@ import { CreateFox } from "@/components/create-fox"
 import { FoxHome } from "@/components/fox-home"
 
 type Screen = "connect" | "disclaimer" | "create" | "home"
+type ConnectionType = "wallet" | "farcaster"
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("connect")
   const [walletAddress, setWalletAddress] = useState<string>("")
+  const [connectionType, setConnectionType] = useState<ConnectionType>("wallet")
   const [foxData, setFoxData] = useState<any>(null)
 
-  const handleWalletConnected = (address: string) => {
-    // Just advance to disclaimer, wallet will be connected there
+  const handleConnectionTypeSelected = (type: ConnectionType) => {
+    setConnectionType(type)
     setCurrentScreen("disclaimer")
   }
 
-  const handleDisclaimerAcknowledged = (address: string) => {
+  const handleDisclaimerAcknowledged = (address: string, type: ConnectionType) => {
     setWalletAddress(address)
+    setConnectionType(type)
     setCurrentScreen("create")
   }
 
@@ -44,8 +47,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black">
-      {currentScreen === "connect" && <ConnectWallet onConnect={handleWalletConnected} />}
-      {currentScreen === "disclaimer" && <ToolsDisclaimer onContinue={handleDisclaimerAcknowledged} />}
+      {currentScreen === "connect" && <ConnectWallet onConnect={handleConnectionTypeSelected} />}
+      {currentScreen === "disclaimer" && (
+        <ToolsDisclaimer onContinue={handleDisclaimerAcknowledged} connectionType={connectionType} />
+      )}
       {currentScreen === "create" && (
         <CreateFox walletAddress={walletAddress} onFoxCreated={handleFoxCreated} onBack={handleBackToHome} />
       )}

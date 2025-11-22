@@ -4,11 +4,15 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ChevronRight, Loader2, Wallet } from "lucide-react"
+import { ChevronRight, Loader2, Wallet, MessageCircle, AlertCircle } from "lucide-react"
 import { useConnect, useAccount } from "wagmi"
+import { useFarcaster } from "@/hooks/use-farcaster"
+
+type ConnectionType = "wallet" | "farcaster"
 
 interface ToolsDisclaimerProps {
-  onContinue: (address: string) => void
+  onContinue: (address: string, connectionType: ConnectionType) => void
+  connectionType: ConnectionType
 }
 
 const tools = [
@@ -41,21 +45,33 @@ const tools = [
   },
 ]
 
-export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
+export function ToolsDisclaimer({ onContinue, connectionType }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
-  const { connect, connectors, isPending } = useConnect()
+  const { connect, connectors, isPending: isWalletPending } = useConnect()
   const { address, isConnected } = useAccount()
+  const { isAuthenticated, user, signIn, signOut, fid } = useFarcaster()
 
-  // Only continue when wallet is actually connected
+  // Handle wallet connection
   useEffect(() => {
-    if (isConnecting && isConnected && address) {
+    if (connectionType === "wallet" && isConnecting && isConnected && address) {
       setIsConnecting(false)
       setConnectionError(null)
-      onContinue(address)
+      onContinue(address, "wallet")
     }
-  }, [isConnecting, isConnected, address, onContinue])
+  }, [connectionType, isConnecting, isConnected, address, onContinue])
+
+  // Handle Farcaster connection
+  useEffect(() => {
+    if (connectionType === "farcaster" && isConnecting && isAuthenticated && fid) {
+      setIsConnecting(false)
+      setConnectionError(null)
+      // Use FID as identifier for Farcaster users
+      const farcasterAddress = `farcaster:${fid}`
+      onContinue(farcasterAddress, "farcaster")
+    }
+  }, [connectionType, isConnecting, isAuthenticated, fid, onContinue])
 
   const handleContinue = async () => {
     if (!acknowledged) return
@@ -64,48 +80,65 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
     setIsConnecting(true)
     setConnectionError(null)
 
-    // Check if wallet is available
-    const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
-    
-    if (!hasWallet) {
-      setConnectionError("No wallet found. Please install MetaMask or another Web3 wallet.")
-      setIsConnecting(false)
-      return
-    }
+    if (connectionType === "wallet") {
+      // Wallet connection logic
+      const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
+      
+      if (!hasWallet) {
+        setConnectionError("No wallet found. Please install MetaMask or another Web3 wallet.")
+        setIsConnecting(false)
+        return
+      }
 
-    // Try to connect with injected wallet (MetaMask, etc.)
-    const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
-    
-    if (!injectedConnector) {
-      setConnectionError("Wallet connector not found. Please refresh the page.")
-      setIsConnecting(false)
-      return
-    }
+      const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
+      
+      if (!injectedConnector) {
+        setConnectionError("Wallet connector not found. Please refresh the page.")
+        setIsConnecting(false)
+        return
+      }
 
-    // Set a timeout to prevent hanging
-    let timeoutId: NodeJS.Timeout | null = null
-    
-    try {
-      timeoutId = setTimeout(() => {
-        if (!isConnected) {
-          setConnectionError("Connection timeout. Please try again.")
+      let timeoutId: NodeJS.Timeout | null = null
+      
+      try {
+        timeoutId = setTimeout(() => {
+          if (!isConnected) {
+            setConnectionError("Connection timeout. Please try again.")
+            setIsConnecting(false)
+          }
+        }, 30000)
+
+        await connect({ connector: injectedConnector })
+        
+        if (timeoutId) clearTimeout(timeoutId)
+        // The useEffect will handle calling onContinue when connected
+      } catch (error: any) {
+        console.error("Failed to connect wallet:", error)
+        if (timeoutId) clearTimeout(timeoutId)
+        setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
+        setIsConnecting(false)
+      }
+    } else if (connectionType === "farcaster") {
+      // Farcaster connection logic
+      try {
+        if (!isAuthenticated) {
+          await signIn()
+          // The useEffect will handle calling onContinue when authenticated
+        } else {
+          // Already authenticated, continue immediately
+          const farcasterAddress = `farcaster:${fid}`
           setIsConnecting(false)
+          onContinue(farcasterAddress, "farcaster")
         }
-      }, 30000) // 30 second timeout
-
-      await connect({ connector: injectedConnector })
-      
-      // Clear timeout if connection succeeds
-      if (timeoutId) clearTimeout(timeoutId)
-      
-      // The useEffect will handle calling onContinue when connected
-    } catch (error: any) {
-      console.error("Failed to connect wallet:", error)
-      if (timeoutId) clearTimeout(timeoutId)
-      setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
-      setIsConnecting(false)
+      } catch (error: any) {
+        console.error("Failed to sign in with Farcaster:", error)
+        setConnectionError(error?.message || "Failed to sign in with Farcaster. Please try again.")
+        setIsConnecting(false)
+      }
     }
   }
+
+  const isPending = connectionType === "wallet" ? isWalletPending : false
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 page-background">
@@ -173,22 +206,46 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
             </label>
           </div>
 
+          {/* Connection Type Indicator */}
+          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              {connectionType === "wallet" ? (
+                <>
+                  <Wallet className="h-4 w-4 text-gray-600" />
+                  <p className="text-sm text-gray-700">Connecting with MetaMask</p>
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="h-4 w-4 text-[#8A63D2]" />
+                  <p className="text-sm text-gray-700">Signing in with Farcaster</p>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Connection Error */}
           {connectionError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{connectionError}</p>
+            <div className="p-3 bg-red-950/20 rounded-lg border border-red-800">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-400" />
+                <p className="text-sm text-red-200">{connectionError}</p>
+              </div>
             </div>
           )}
 
           {/* Loading State */}
           {isConnecting && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-4 bg-blue-950/20 rounded-lg border border-blue-800">
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
                 <div>
-                  <p className="text-sm font-semibold text-blue-900">Connecting Wallet...</p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Please approve the connection in your wallet (MetaMask, etc.)
+                  <p className="text-sm font-semibold text-blue-200">
+                    {connectionType === "wallet" ? "Connecting Wallet..." : "Signing in with Farcaster..."}
+                  </p>
+                  <p className="text-xs text-blue-300 mt-1">
+                    {connectionType === "wallet"
+                      ? "Please approve the connection in your wallet (MetaMask, etc.)"
+                      : "Please approve the sign-in request in your Farcaster app"}
                   </p>
                 </div>
               </div>
@@ -199,17 +256,28 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
           <Button
             onClick={handleContinue}
             disabled={!acknowledged || isConnecting || isPending}
-            className="w-full h-12 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full h-12 text-lg font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed ${
+              connectionType === "wallet" ? "bg-[#000000] hover:bg-[#222222]" : "bg-[#8A63D2] hover:bg-[#7A53C2]"
+            }`}
           >
             {isConnecting || isPending ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Connecting...
+                {connectionType === "wallet" ? "Connecting..." : "Signing in..."}
               </>
             ) : (
               <>
-                <Wallet className="mr-2 h-5 w-5" />
-                Connect Wallet & Continue
+                {connectionType === "wallet" ? (
+                  <>
+                    <Wallet className="mr-2 h-5 w-5" />
+                    Connect Wallet & Continue
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="mr-2 h-5 w-5" />
+                    Sign in with Farcaster & Continue
+                  </>
+                )}
               </>
             )}
             {!isConnecting && !isPending && <ChevronRight className="ml-2 h-5 w-5" />}

@@ -3,10 +3,12 @@
 import { useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Wallet } from "lucide-react"
+import { Wallet, MessageCircle } from "lucide-react"
+
+type ConnectionType = "wallet" | "farcaster"
 
 interface ConnectWalletProps {
-  onConnect: (address: string) => void
+  onConnect: (type: ConnectionType) => void
 }
 
 export function ConnectWallet({ onConnect }: ConnectWalletProps) {
@@ -19,13 +21,6 @@ export function ConnectWallet({ onConnect }: ConnectWalletProps) {
       })
     }
   }, [])
-
-  // Just advance to disclaimer without connecting wallet
-  const handleContinue = () => {
-    // Use a placeholder address for now, wallet will be connected in disclaimer
-    const placeholderAddress = "0x0000000000000000000000000000000000000000"
-    onConnect(placeholderAddress)
-  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between pt-[20vh] pb-8 p-4 relative overflow-hidden">
@@ -52,13 +47,34 @@ export function ConnectWallet({ onConnect }: ConnectWalletProps) {
             </div>
           </div>
 
-          <Button
-            onClick={handleContinue}
-            className="w-full h-14 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222]"
-          >
-            <Wallet className="mr-2 h-5 w-5" />
-            Continue
-          </Button>
+          <div className="space-y-3">
+            <p className="text-center text-sm text-gray-600 font-medium">Choose how to connect:</p>
+            
+            <Button
+              onClick={() => onConnect("wallet")}
+              className="w-full h-14 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222] flex items-center justify-center gap-3"
+            >
+              <Wallet className="h-5 w-5" />
+              Connect with MetaMask
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white/95 px-2 text-gray-500">or</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => onConnect("farcaster")}
+              className="w-full h-14 text-lg font-semibold bg-[#8A63D2] text-white hover:bg-[#7A53C2] flex items-center justify-center gap-3"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Sign in with Farcaster
+            </Button>
+          </div>
         </div>
       </Card>
 
