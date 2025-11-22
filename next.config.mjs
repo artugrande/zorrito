@@ -35,6 +35,7 @@ const nextConfig = {
     '@walletconnect/ethereum-provider',
     '@farcaster/auth-kit',
     '@farcaster/auth-client',
+    '@farcaster/miniapp-sdk',
     '@metamask/sdk',
   ],
   // Turbopack configuration to silence warnings
