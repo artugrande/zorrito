@@ -37,17 +37,8 @@ const nextConfig = {
       '@metamask/sdk',
     ],
   },
-  // Webpack configuration to handle CSS imports
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Ignore CSS imports on server side
-      config.module.rules.push({
-        test: /\.css$/,
-        use: 'ignore-loader',
-      })
-    }
-    return config
-  },
+  // Turbopack configuration to silence warnings
+  turbopack: {},
 }
 
 export default nextConfig
