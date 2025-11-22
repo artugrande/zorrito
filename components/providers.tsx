@@ -7,15 +7,15 @@ import { config } from '@/lib/wagmi'
 import { farcasterConfig } from '@/lib/farcaster'
 import { useState, useEffect } from 'react'
 
-// Dynamically import CSS to avoid SSR issues
-if (typeof window !== 'undefined') {
-  import('@farcaster/auth-kit/styles.css').catch(() => {
-    // Silently fail if CSS can't be loaded
-  })
-}
-
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
+
+  // Dynamically import CSS to avoid SSR issues
+  useEffect(() => {
+    import('@farcaster/auth-kit/styles.css').catch(() => {
+      // Silently fail if CSS can't be loaded
+    })
+  }, [])
 
   return (
     <AuthKitProvider config={farcasterConfig}>
