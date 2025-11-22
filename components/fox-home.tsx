@@ -356,7 +356,14 @@ Start playing 👉 https://zorrito.vercel.app
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {feedingOptions.map((option) => {
               const quantity = quantities[option.id as keyof typeof quantities]
-              const totalPrice = (option.basePrice * quantity).toFixed(2)
+              // Format price to show at least 3 decimal places for small amounts
+              const formatPrice = (price: number) => {
+                if (price >= 1) return price.toFixed(2)
+                if (price >= 0.1) return price.toFixed(3)
+                return price.toFixed(4) // For 0.001, show 4 decimals
+              }
+              const totalPrice = formatPrice(option.basePrice * quantity)
+              const displayPrice = formatPrice(option.basePrice)
               const Icon = option.icon
               const isPotion = option.id === "potion"
               return (
@@ -404,7 +411,7 @@ Start playing 👉 https://zorrito.vercel.app
                     )}
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm whitespace-nowrap text-gray-900">
-                        {isPotion ? option.basePrice : totalPrice} CELO
+                        {isPotion ? displayPrice : totalPrice} CELO
                       </span>
                       <Button
                         size="sm"
