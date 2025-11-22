@@ -1,3 +1,5 @@
+'use client'
+
 import { createConfig, http } from 'wagmi'
 import { injected, metaMask } from 'wagmi/connectors'
 
