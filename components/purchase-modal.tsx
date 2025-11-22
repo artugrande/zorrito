@@ -23,12 +23,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (!item) return null
-
-  const totalCost = (item.price * item.quantity).toFixed(2)
-  // Convert cUSD to Wei (cUSD uses 18 decimals)
-  const totalCostInWei = parseUnits(totalCost, 18)
-
+  // All hooks must be called before any conditional returns
   const {
     data: hash,
     isPending: isSending,
@@ -39,6 +34,13 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   })
+
+  // Now we can do conditional returns after all hooks
+  if (!item) return null
+
+  const totalCost = (item.price * item.quantity).toFixed(2)
+  // Convert cUSD to Wei (cUSD uses 18 decimals)
+  const totalCostInWei = parseUnits(totalCost, 18)
 
   // Show success screen when transaction is confirmed
   useEffect(() => {
