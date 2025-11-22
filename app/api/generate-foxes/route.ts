@@ -122,9 +122,23 @@ Generate a single, complete image. Do not include any text or labels.`
     }
 
     const generatedImage = imageFiles[0]
-    const generatedUrl = `data:${generatedImage.mediaType};base64,${generatedImage.base64}`
+    
+    // Ensure base64 is a string
+    const base64String = typeof generatedImage.base64 === 'string' 
+      ? generatedImage.base64 
+      : String(generatedImage.base64 || '')
+    
+    if (!base64String) {
+      console.log("[SERVER][v0] No base64 data in generated image")
+      return NextResponse.json<ErrorResponse>(
+        { error: "Invalid image data", details: "The generated image does not contain valid base64 data" },
+        { status: 500 },
+      )
+    }
+    
+    const generatedUrl = `data:${generatedImage.mediaType};base64,${base64String}`
 
-    console.log("[SERVER][v0] Fox generated successfully! Image size:", generatedImage.base64?.length || 0, "chars")
+    console.log("[SERVER][v0] Fox generated successfully! Image size:", base64String.length, "chars")
 
     return NextResponse.json<GenerateFoxesResponse>({
       image: generatedUrl,

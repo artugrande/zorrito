@@ -29,17 +29,8 @@ export function useFarcasterWallet() {
         // 2. window.ethereum (injected by Farcaster client)
         // 3. Automatically connected
         
-        // Check context first
-        try {
-          const context = farcasterSDK.context as any
-          if (context?.wallet?.address) {
-            setAddress(context.wallet.address)
-            setIsConnected(true)
-            return
-          }
-        } catch (e) {
-          // Context might not have wallet info yet
-        }
+        // Note: We don't access context.wallet directly as it causes path errors
+        // Instead, we rely on window.ethereum which is injected by Farcaster
 
         // Check if window.ethereum is available (injected by Farcaster)
         if (typeof window !== 'undefined' && (window as any).ethereum) {
@@ -72,15 +63,8 @@ export function useFarcasterWallet() {
     setError(null)
 
     try {
-      // First, try to get wallet from SDK context
-      const context = sdk.context as any
-      if (context?.wallet?.address) {
-        setAddress(context.wallet.address)
-        setIsConnected(true)
-        return context.wallet.address
-      }
-
-      // If not in context, try window.ethereum (injected by Farcaster client)
+      // Use window.ethereum (injected by Farcaster client)
+      // Note: We don't access context.wallet directly as it causes path errors
       if (typeof window !== 'undefined' && (window as any).ethereum) {
         try {
           const accounts = await (window as any).ethereum.request({ 
