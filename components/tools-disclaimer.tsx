@@ -82,9 +82,11 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
       return
     }
 
+    // Set a timeout to prevent hanging
+    let timeoutId: NodeJS.Timeout | null = null
+    
     try {
-      // Set a timeout to prevent hanging
-      const timeoutId = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         if (!isConnected) {
           setConnectionError("Connection timeout. Please try again.")
           setIsConnecting(false)
@@ -94,12 +96,12 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
       await connect({ connector: injectedConnector })
       
       // Clear timeout if connection succeeds
-      clearTimeout(timeoutId)
+      if (timeoutId) clearTimeout(timeoutId)
       
       // The useEffect will handle calling onContinue when connected
     } catch (error: any) {
       console.error("Failed to connect wallet:", error)
-      clearTimeout(timeoutId)
+      if (timeoutId) clearTimeout(timeoutId)
       setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
       setIsConnecting(false)
     }
