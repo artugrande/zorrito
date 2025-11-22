@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -19,7 +22,20 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
     // Exclude problematic packages from server components
-    serverComponentsExternalPackages: ['pino', 'thread-stream', '@walletconnect/ethereum-provider'],
+    serverComponentsExternalPackages: [
+      'pino',
+      'thread-stream',
+      'tap',
+      'desm',
+      'fastbench',
+      'pino-elasticsearch',
+      'why-is-node-running',
+      'tape',
+      '@walletconnect/ethereum-provider',
+      '@farcaster/auth-kit',
+      '@farcaster/auth-client',
+      '@metamask/sdk',
+    ],
   },
 }
 

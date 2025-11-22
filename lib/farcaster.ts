@@ -4,9 +4,9 @@
 // Get your app ID from https://warpcast.com/~/developers
 export const farcasterConfig = {
   // Domain for SIWE (Sign-In With Ethereum)
-  domain: typeof window !== 'undefined' ? window.location.hostname : 'zorrito.vercel.app',
+  domain: process.env.NEXT_PUBLIC_FARCASTER_DOMAIN || (typeof window !== 'undefined' ? window.location.hostname : 'zorrito.vercel.app'),
   // URI for SIWE
-  siweUri: typeof window !== 'undefined' ? window.location.origin : 'https://zorrito.vercel.app',
+  siweUri: process.env.NEXT_PUBLIC_FARCASTER_SIWE_URI || (typeof window !== 'undefined' ? window.location.origin : 'https://zorrito.vercel.app'),
   // Optional: RPC URL for Ethereum (if needed)
   // rpcUrl: process.env.NEXT_PUBLIC_FARCASTER_RPC_URL,
 }
