@@ -26,7 +26,8 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   // All hooks must be called before any conditional returns
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
-  const CELO_SEPOLIA_CHAIN_ID = 44787
+  // Use Base Sepolia (chain ID 84532) - supported by Farcaster wallet
+  const BASE_SEPOLIA_CHAIN_ID = 84532
 
   const {
     data: hash,
@@ -103,9 +104,9 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     setError(null)
     
     // Check if we're on the correct chain
-    if (chainId !== CELO_SEPOLIA_CHAIN_ID) {
+    if (chainId !== BASE_SEPOLIA_CHAIN_ID) {
       try {
-        await switchChain({ chainId: CELO_SEPOLIA_CHAIN_ID })
+        await switchChain({ chainId: BASE_SEPOLIA_CHAIN_ID })
         // Wait a bit for chain switch
         await new Promise(resolve => setTimeout(resolve, 1500))
         // Retry sending transaction after chain switch
@@ -119,7 +120,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         }
         return
       } catch (err) {
-        setError("Please switch to Celo Sepolia network in your wallet")
+        setError("Please switch to Base Sepolia network in your wallet")
         return
       }
     }

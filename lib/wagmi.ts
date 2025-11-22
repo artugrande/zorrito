@@ -1,47 +1,22 @@
 'use client'
 
 import { createConfig, http } from 'wagmi'
+import { base, baseSepolia } from 'wagmi/chains'
 import { injected, metaMask } from 'wagmi/connectors'
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector'
 
-// Celo Sepolia chain configuration
-const celoSepolia = {
-  id: 44787,
-  name: 'Celo Sepolia',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Celo',
-    symbol: 'CELO',
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://rpc.ankr.com/celo_sepolia'], // Ankr public endpoint
-    },
-    public: {
-      http: ['https://rpc.ankr.com/celo_sepolia'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'CeloScan',
-      url: 'https://sepolia.celoscan.io',
-    },
-  },
-  testnet: true,
-} as const
-
+// Use Base Sepolia (testnet) - Farcaster wallet supports Base chains
+// You can switch to base (mainnet) for production
 export const config = createConfig({
-  chains: [celoSepolia],
+  chains: [baseSepolia, base], // Base Sepolia for testing, Base for production
   connectors: [
     farcasterMiniApp(), // Farcaster MiniApp connector (connects automatically if wallet already connected)
     injected(),
     metaMask(),
   ],
   transports: {
-    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia', {
-      retryCount: 3,
-      retryDelay: 1000,
-    }),
+    [baseSepolia.id]: http(),
+    [base.id]: http(),
   },
 })
 
