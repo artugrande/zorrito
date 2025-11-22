@@ -14,11 +14,10 @@ const celoSepolia = {
   },
   rpcUrls: {
     default: {
-      http: [
-        'https://celo-sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161', // Infura public endpoint
-        'https://rpc.ankr.com/celo_sepolia', // Ankr public endpoint
-        'https://sepolia-forno.celo.org', // Fallback to original
-      ],
+      http: ['https://rpc.ankr.com/celo_sepolia'], // Ankr public endpoint (more reliable)
+    },
+    public: {
+      http: ['https://rpc.ankr.com/celo_sepolia'],
     },
   },
   blockExplorers: {
