@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useSendTransaction, useWaitForTransactionReceipt, useAccount, useSwitchChain } from "wagmi"
+import { useSendTransaction, useWaitForTransactionReceipt, useChainId, useSwitchChain } from "wagmi"
 import { parseUnits } from "viem"
 import { TREASURY_WALLET_ADDRESS } from "@/lib/wagmi"
 
@@ -24,8 +24,8 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const [error, setError] = useState<string | null>(null)
 
   // All hooks must be called before any conditional returns
-  // Use useAccount to get chainId safely (works with all connectors)
-  const { chainId } = useAccount()
+  // Use useChainId hook which is more reliable with Farcaster connector
+  const chainId = useChainId()
   const { switchChain } = useSwitchChain()
   // Use Celo Mainnet (chain ID 42220)
   const CELO_MAINNET_CHAIN_ID = 42220
