@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -21,6 +18,22 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
+  webpack: (config, { isServer }) => {
+    // Exclude test files from node_modules
+    config.module = config.module || {}
+    config.module.rules = config.module.rules || []
+    config.module.rules.push({
+      test: /\.(test|spec)\.(js|ts|mjs)$/,
+      exclude: /node_modules/,
+    })
+    
+    // Ignore test directories in node_modules
+    config.resolve = config.resolve || {}
+    config.resolve.alias = config.resolve.alias || {}
+    config.resolve.alias['thread-stream/test'] = false
+    
+    return config
   },
 }
 

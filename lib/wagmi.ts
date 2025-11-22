@@ -1,5 +1,5 @@
 import { createConfig, http } from 'wagmi'
-import { injected, metaMask, safe, walletConnect } from 'wagmi/connectors'
+import { injected, metaMask } from 'wagmi/connectors'
 
 // Celo Sepolia chain configuration
 const celoSepolia = {
@@ -29,10 +29,6 @@ export const config = createConfig({
   connectors: [
     injected(),
     metaMask(),
-    walletConnect({
-      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'default-project-id',
-    }),
-    safe(),
   ],
   transports: {
     [celoSepolia.id]: http(),
