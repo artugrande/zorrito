@@ -5,6 +5,7 @@ import { ConnectWallet } from "@/components/connect-wallet"
 import { ToolsDisclaimer } from "@/components/tools-disclaimer"
 import { CreateFox } from "@/components/create-fox"
 import { FoxHome } from "@/components/fox-home"
+import { FarcasterReady } from "@/components/farcaster-ready"
 
 type Screen = "connect" | "disclaimer" | "create" | "home"
 
@@ -44,6 +45,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black">
+      <FarcasterReady />
       {currentScreen === "connect" && <ConnectWallet onConnect={handleWalletConnected} />}
       {currentScreen === "disclaimer" && <ToolsDisclaimer onContinue={handleDisclaimerAcknowledged} />}
       {currentScreen === "create" && (
