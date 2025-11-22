@@ -44,21 +44,24 @@ const tools = [
 export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
+  const [shouldConnect, setShouldConnect] = useState(false)
   const { connect, connectors, isPending } = useConnect()
   const { address, isConnected } = useAccount()
 
-  // Auto-continue when wallet is connected
+  // Only auto-continue when wallet is connected AND user clicked Continue
   useEffect(() => {
-    if (isConnected && address) {
+    if (shouldConnect && isConnected && address) {
       setIsConnecting(false)
+      setShouldConnect(false)
       onContinue(address)
     }
-  }, [isConnected, address, onContinue])
+  }, [shouldConnect, isConnected, address, onContinue])
 
   const handleContinue = async () => {
     if (!acknowledged) return
 
     setIsConnecting(true)
+    setShouldConnect(true)
 
     // Check if wallet is available
     const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
@@ -76,6 +79,7 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
       } catch (error) {
         console.error("Failed to connect wallet:", error)
         setIsConnecting(false)
+        setShouldConnect(false)
         // Fallback to mock for development
         setTimeout(() => {
           const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
@@ -88,6 +92,7 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
         const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
         onContinue(mockAddress)
         setIsConnecting(false)
+        setShouldConnect(false)
       }, 1500)
     }
   }
