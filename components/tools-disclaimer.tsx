@@ -122,8 +122,9 @@ export function ToolsDisclaimer({ onContinue, connectionType }: ToolsDisclaimerP
       // Farcaster connection logic
       try {
         if (!isAuthenticated) {
-          await signIn()
+          // signIn() from useSignIn doesn't return a promise, it triggers the flow
           // The useEffect will handle calling onContinue when authenticated
+          signIn()
         } else {
           // Already authenticated, continue immediately
           const farcasterAddress = `farcaster:${fid}`
