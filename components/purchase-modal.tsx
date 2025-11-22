@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi"
+import { useSendTransaction, useWaitForTransactionReceipt, useChainId, useSwitchChain } from "wagmi"
 import { parseUnits } from "viem"
 import { TREASURY_WALLET_ADDRESS } from "@/lib/wagmi"
 
@@ -95,8 +95,24 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   // Use fixed 0.001 CELO for all transactions (to save faucet)
   const transactionValue = parseUnits("0.001", 18)
 
-  const handleConfirmPurchase = () => {
+  const handleConfirmPurchase = async () => {
     setError(null)
+    
+    // Check if we're on the correct chain
+    if (chainId !== CELO_SEPOLIA_CHAIN_ID) {
+      try {
+        await switchChain({ chainId: CELO_SEPOLIA_CHAIN_ID })
+        // Wait a bit for chain switch, then retry
+        setTimeout(() => {
+          handleConfirmPurchase()
+        }, 1000)
+        return
+      } catch (err) {
+        setError("Please switch to Celo Sepolia network in your wallet")
+        return
+      }
+    }
+
     try {
       sendTransaction({
         to: TREASURY_WALLET_ADDRESS as `0x${string}`,

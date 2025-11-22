@@ -14,7 +14,7 @@ const celoSepolia = {
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.ankr.com/celo_sepolia'], // Ankr public endpoint (more reliable)
+      http: ['https://rpc.ankr.com/celo_sepolia'], // Ankr public endpoint
     },
     public: {
       http: ['https://rpc.ankr.com/celo_sepolia'],
