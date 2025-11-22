@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ChevronRight, Loader2, Wallet } from "lucide-react"
 import { useConnect, useAccount } from "wagmi"
-import { useFarcasterWallet } from "@/lib/use-farcaster-wallet"
 
 interface ToolsDisclaimerProps {
   onContinue: (address: string) => void
@@ -46,25 +45,9 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
   
-  // Try Farcaster SDK wallet first (preferred)
-  const {
-    address: farcasterAddress,
-    isConnected: isFarcasterConnected,
-    isConnecting: isFarcasterConnecting,
-    error: farcasterError,
-    connect: connectFarcaster,
-    sdk: farcasterSDK,
-  } = useFarcasterWallet()
-
-  // Fallback to wagmi connectors if Farcaster SDK not available
+  // Use wagmi with Farcaster connector (automatically connects if wallet already connected)
   const { connect, connectors, isPending } = useConnect()
-  const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount()
-
-  // Determine which wallet system to use
-  const isFarcasterAvailable = !!farcasterSDK
-  const address = farcasterAddress || wagmiAddress
-  const isConnected = isFarcasterConnected || isWagmiConnected
-  const isConnecting = isFarcasterConnecting || isPending
+  const { address, isConnected } = useAccount()
 
   // Only continue when wallet is actually connected
   useEffect(() => {
@@ -76,27 +59,23 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
 
   const handleContinue = async () => {
     if (!acknowledged) return
-    if (isConnecting) return // Prevent double clicks
+    if (isPending) return // Prevent double clicks
 
     setConnectionError(null)
 
-    // Always try Farcaster SDK first if available
-    if (isFarcasterAvailable) {
-      try {
-        await connectFarcaster()
-        // The useEffect will handle calling onContinue when connected
-        return
-      } catch (error: any) {
-        console.error("Failed to connect with Farcaster SDK:", error)
-        setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
-        return
-      }
+    // Farcaster connector is first in the list, so it will be used automatically
+    // If user already has a connected wallet, isConnected will be true automatically
+    // Otherwise, we need to connect
+    if (isConnected) {
+      // Already connected, useEffect will handle calling onContinue
+      return
     }
 
-    // Fallback to wagmi connectors if Farcaster SDK not available
-    const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
+    // Find the Farcaster connector first, then fallback to others
+    const farcasterConnector = connectors.find((c) => c.id === "farcasterMiniApp" || c.name?.toLowerCase().includes("farcaster"))
+    const connectorToUse = farcasterConnector || connectors[0]
     
-    if (!injectedConnector) {
+    if (!connectorToUse) {
       setConnectionError("Wallet connector not found. Please refresh the page.")
       return
     }
@@ -111,7 +90,7 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
         }
       }, 30000) // 30 second timeout
 
-      await connect({ connector: injectedConnector })
+      await connect({ connector: connectorToUse })
       
       // Clear timeout if connection succeeds
       if (timeoutId) clearTimeout(timeoutId)
@@ -198,14 +177,14 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
           )}
 
           {/* Loading State */}
-          {isConnecting && (
+          {isPending && (
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-3">
                 <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
                 <div>
                   <p className="text-sm font-semibold text-blue-900">Connecting Wallet...</p>
                   <p className="text-xs text-blue-700 mt-1">
-                    Please approve the connection in your wallet (MetaMask, etc.)
+                    Please approve the connection in your wallet
                   </p>
                 </div>
               </div>
@@ -215,13 +194,18 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
           {/* Continue Button */}
           <Button
             onClick={handleContinue}
-            disabled={!acknowledged || isConnecting || isPending}
+            disabled={!acknowledged || isPending || isConnected}
             className="w-full h-12 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isConnecting || isPending ? (
+            {isPending ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Connecting...
+              </>
+            ) : isConnected ? (
+              <>
+                <Wallet className="mr-2 h-5 w-5" />
+                Connected
               </>
             ) : (
               <>
@@ -229,7 +213,7 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
                 Connect Wallet & Continue
               </>
             )}
-            {!isConnecting && !isPending && <ChevronRight className="ml-2 h-5 w-5" />}
+            {!isPending && !isConnected && <ChevronRight className="ml-2 h-5 w-5" />}
           </Button>
         </div>
       </Card>

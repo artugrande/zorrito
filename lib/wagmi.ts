@@ -2,6 +2,7 @@
 
 import { createConfig, http } from 'wagmi'
 import { injected, metaMask } from 'wagmi/connectors'
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector'
 
 // Celo Sepolia chain configuration
 const celoSepolia = {
@@ -32,6 +33,7 @@ const celoSepolia = {
 export const config = createConfig({
   chains: [celoSepolia],
   connectors: [
+    farcasterMiniApp(), // Farcaster MiniApp connector (connects automatically if wallet already connected)
     injected(),
     metaMask(),
   ],
