@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ChevronRight, Loader2, Wallet } from "lucide-react"
 import { useConnect, useAccount } from "wagmi"
+import { useFarcasterWallet } from "@/lib/use-farcaster-wallet"
 
 interface ToolsDisclaimerProps {
   onContinue: (address: string) => void
@@ -43,39 +44,60 @@ const tools = [
 
 export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
-  const [isConnecting, setIsConnecting] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
+  
+  // Try Farcaster SDK wallet first (preferred)
+  const {
+    address: farcasterAddress,
+    isConnected: isFarcasterConnected,
+    isConnecting: isFarcasterConnecting,
+    error: farcasterError,
+    connect: connectFarcaster,
+    sdk: farcasterSDK,
+  } = useFarcasterWallet()
+
+  // Fallback to wagmi connectors if Farcaster SDK not available
   const { connect, connectors, isPending } = useConnect()
-  const { address, isConnected } = useAccount()
+  const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount()
+
+  // Determine which wallet system to use
+  const isFarcasterAvailable = !!farcasterSDK
+  const address = farcasterAddress || wagmiAddress
+  const isConnected = isFarcasterConnected || isWagmiConnected
+  const isConnecting = isFarcasterConnecting || isPending
 
   // Only continue when wallet is actually connected
   useEffect(() => {
-    if (isConnecting && isConnected && address) {
-      setIsConnecting(false)
+    if (isConnected && address) {
       setConnectionError(null)
       onContinue(address)
     }
-  }, [isConnecting, isConnected, address, onContinue])
+  }, [isConnected, address, onContinue])
 
   const handleContinue = async () => {
     if (!acknowledged) return
     if (isConnecting) return // Prevent double clicks
 
-    setIsConnecting(true)
     setConnectionError(null)
 
-    // Prioritize Farcaster MiniApp connector if available (when running in Farcaster)
-    const farcasterConnector = connectors.find((c) => c.id === "farcasterMiniApp" || c.name?.toLowerCase().includes("farcaster"))
-    
-    // Fallback to injected wallet (MetaMask, etc.) if not in Farcaster context
+    // Always try Farcaster SDK first if available
+    if (isFarcasterAvailable) {
+      try {
+        await connectFarcaster()
+        // The useEffect will handle calling onContinue when connected
+        return
+      } catch (error: any) {
+        console.error("Failed to connect with Farcaster SDK:", error)
+        setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
+        return
+      }
+    }
+
+    // Fallback to wagmi connectors if Farcaster SDK not available
     const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
     
-    // Use Farcaster connector if available, otherwise use injected
-    const connectorToUse = farcasterConnector || injectedConnector
-    
-    if (!connectorToUse) {
+    if (!injectedConnector) {
       setConnectionError("Wallet connector not found. Please refresh the page.")
-      setIsConnecting(false)
       return
     }
 
@@ -86,11 +108,10 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
       timeoutId = setTimeout(() => {
         if (!isConnected) {
           setConnectionError("Connection timeout. Please try again.")
-          setIsConnecting(false)
         }
       }, 30000) // 30 second timeout
 
-      await connect({ connector: connectorToUse })
+      await connect({ connector: injectedConnector })
       
       // Clear timeout if connection succeeds
       if (timeoutId) clearTimeout(timeoutId)
@@ -100,7 +121,6 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
       console.error("Failed to connect wallet:", error)
       if (timeoutId) clearTimeout(timeoutId)
       setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
-      setIsConnecting(false)
     }
   }
 
