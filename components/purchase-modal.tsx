@@ -26,8 +26,8 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   // All hooks must be called before any conditional returns
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
-  // Use Base Sepolia (chain ID 84532) - supported by Farcaster wallet
-  const BASE_SEPOLIA_CHAIN_ID = 84532
+  // Use Celo Mainnet (chain ID 42220)
+  const CELO_MAINNET_CHAIN_ID = 42220
 
   const {
     data: hash,
@@ -96,17 +96,17 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   // Now we can do conditional returns after all hooks
   if (!item) return null
 
-  const totalCost = (item.price * item.quantity).toFixed(2)
-  // Use fixed 0.001 CELO for all transactions (to save faucet)
-  const transactionValue = parseUnits("0.001", 18)
+  const totalCost = (item.price * item.quantity).toFixed(6) // More precision for small CELO amounts
+  // Use the actual price in CELO
+  const transactionValue = parseUnits(totalCost, 18)
 
   const handleConfirmPurchase = async () => {
     setError(null)
     
     // Check if we're on the correct chain
-    if (chainId !== BASE_SEPOLIA_CHAIN_ID) {
+    if (chainId !== CELO_MAINNET_CHAIN_ID) {
       try {
-        await switchChain({ chainId: BASE_SEPOLIA_CHAIN_ID })
+        await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
         // Wait a bit for chain switch
         await new Promise(resolve => setTimeout(resolve, 1500))
         // Retry sending transaction after chain switch
@@ -120,7 +120,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         }
         return
       } catch (err) {
-        setError("Please switch to Base Sepolia network in your wallet")
+        setError("Please switch to Celo Mainnet network in your wallet")
         return
       }
     }
@@ -160,8 +160,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             <div className="p-4 bg-black rounded-lg border border-zinc-800 space-y-2">
               <p className="text-zinc-400">Amount Spent</p>
               <div className="flex items-center justify-center gap-2">
-                <img src="/images/celousdcoin.png" alt="cUSD" className="w-6 h-6" />
-                <span className="text-2xl font-bold">{totalCost} cUSD</span>
+                <span className="text-2xl font-bold">{totalCost} CELO</span>
               </div>
             </div>
 
@@ -206,8 +205,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
               <span className="text-zinc-400">Total Cost</span>
               <div className="flex items-center gap-2">
-                <img src="/images/celousdcoin.png" alt="cUSD" className="w-5 h-5" />
-                <span className="text-xl font-bold">{totalCost} cUSD</span>
+                <span className="text-xl font-bold">{totalCost} CELO</span>
               </div>
             </div>
           </div>
