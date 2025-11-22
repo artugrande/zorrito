@@ -31,8 +31,12 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     sendTransaction,
   } = useSendTransaction()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
+  // Only wait for receipt if we have a transaction hash
+  const { isLoading: isConfirming, isSuccess: isConfirmed, error: receiptError } = useWaitForTransactionReceipt({
+    hash: hash || undefined,
+    query: {
+      enabled: !!hash, // Only query when hash exists
+    },
   })
 
   // Show success screen when transaction is confirmed
@@ -54,6 +58,13 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       setError(sendError.message || "Transaction failed. Please try again.")
     }
   }, [sendError])
+
+  // Handle receipt errors
+  useEffect(() => {
+    if (receiptError) {
+      setError(receiptError.message || "Transaction confirmation failed. Please check the transaction hash.")
+    }
+  }, [receiptError])
 
   // Reset state when modal closes
   useEffect(() => {
@@ -182,6 +193,11 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
                   {isSending ? "Sending transaction..." : "Waiting for confirmation..."}
                 </p>
               </div>
+              {hash && (
+                <p className="text-xs text-blue-300 mt-2 break-all">
+                  TX: {hash.slice(0, 10)}...{hash.slice(-8)}
+                </p>
+              )}
             </div>
           )}
 
