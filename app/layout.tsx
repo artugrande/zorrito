@@ -111,6 +111,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta
+          name="fc:miniapp"
+          content='{"version":"1","imageUrl":"https://zorrito.vercel.app/images/shareimage.png","button":{"title":"Play Now","action":{"type":"launch_miniapp","url":"https://zorrito.vercel.app"}}}'
+        />
       </head>
       <body className="font-sans antialiased bg-[#D8731F] text-white">
         <Providers>

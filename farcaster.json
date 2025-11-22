@@ -1,0 +1,14 @@
+{
+  "name": "Zorrito Finance",
+  "description": "Save daily with a no-loss lottery. Deposit cUSD, grow savings with yield, win prizes, and support Patagonia's wildlife conservation.",
+  "imageUrl": "https://zorrito.vercel.app/images/shareimage.png",
+  "button": {
+    "title": "Play Now",
+    "action": {
+      "type": "launch_miniapp",
+      "url": "https://zorrito.vercel.app"
+    }
+  },
+  "version": "1"
+}
+
