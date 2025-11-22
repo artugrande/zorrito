@@ -35,13 +35,6 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     hash,
   })
 
-  // Now we can do conditional returns after all hooks
-  if (!item) return null
-
-  const totalCost = (item.price * item.quantity).toFixed(2)
-  // Convert cUSD to Wei (cUSD uses 18 decimals)
-  const totalCostInWei = parseUnits(totalCost, 18)
-
   // Show success screen when transaction is confirmed
   useEffect(() => {
     if (isConfirmed) {
@@ -69,6 +62,13 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       setError(null)
     }
   }, [open])
+
+  // Now we can do conditional returns after all hooks
+  if (!item) return null
+
+  const totalCost = (item.price * item.quantity).toFixed(2)
+  // Convert cUSD to Wei (cUSD uses 18 decimals)
+  const totalCostInWei = parseUnits(totalCost, 18)
 
   const handleConfirmPurchase = () => {
     setError(null)
