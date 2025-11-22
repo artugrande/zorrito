@@ -24,6 +24,10 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const [error, setError] = useState<string | null>(null)
 
   // All hooks must be called before any conditional returns
+  const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
+  const CELO_SEPOLIA_CHAIN_ID = 44787
+
   const {
     data: hash,
     isPending: isSending,
@@ -102,10 +106,17 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     if (chainId !== CELO_SEPOLIA_CHAIN_ID) {
       try {
         await switchChain({ chainId: CELO_SEPOLIA_CHAIN_ID })
-        // Wait a bit for chain switch, then retry
-        setTimeout(() => {
-          handleConfirmPurchase()
-        }, 1000)
+        // Wait a bit for chain switch
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        // Retry sending transaction after chain switch
+        try {
+          sendTransaction({
+            to: TREASURY_WALLET_ADDRESS as `0x${string}`,
+            value: transactionValue,
+          })
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to send transaction after chain switch")
+        }
         return
       } catch (err) {
         setError("Please switch to Celo Sepolia network in your wallet")
