@@ -36,7 +36,7 @@ export const config = createConfig({
     metaMask(),
   ],
   transports: {
-    [celoSepolia.id]: http({
+    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia', {
       retryCount: 3,
       retryDelay: 1000,
     }),
