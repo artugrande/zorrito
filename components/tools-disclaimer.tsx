@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Loader2, Wallet } from "lucide-react"
 import { useConnect, useAccount } from "wagmi"
 
 interface ToolsDisclaimerProps {
@@ -44,56 +44,64 @@ const tools = [
 export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
-  const [shouldConnect, setShouldConnect] = useState(false)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
   const { connect, connectors, isPending } = useConnect()
   const { address, isConnected } = useAccount()
 
-  // Only auto-continue when wallet is connected AND user clicked Continue
+  // Only continue when wallet is actually connected
   useEffect(() => {
-    if (shouldConnect && isConnected && address) {
+    if (isConnecting && isConnected && address) {
       setIsConnecting(false)
-      setShouldConnect(false)
+      setConnectionError(null)
       onContinue(address)
     }
-  }, [shouldConnect, isConnected, address, onContinue])
+  }, [isConnecting, isConnected, address, onContinue])
 
   const handleContinue = async () => {
     if (!acknowledged) return
+    if (isConnecting) return // Prevent double clicks
 
     setIsConnecting(true)
-    setShouldConnect(true)
+    setConnectionError(null)
 
     // Check if wallet is available
     const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
     
+    if (!hasWallet) {
+      setConnectionError("No wallet found. Please install MetaMask or another Web3 wallet.")
+      setIsConnecting(false)
+      return
+    }
+
     // Try to connect with injected wallet (MetaMask, etc.)
     const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
     
-    if (injectedConnector && hasWallet) {
-      try {
-        const result = await connect({ connector: injectedConnector })
-        // If connection is successful, useEffect will handle calling onContinue
-        if (result?.error) {
-          throw result.error
+    if (!injectedConnector) {
+      setConnectionError("Wallet connector not found. Please refresh the page.")
+      setIsConnecting(false)
+      return
+    }
+
+    try {
+      // Set a timeout to prevent hanging
+      const timeoutId = setTimeout(() => {
+        if (!isConnected) {
+          setConnectionError("Connection timeout. Please try again.")
+          setIsConnecting(false)
         }
-      } catch (error) {
-        console.error("Failed to connect wallet:", error)
-        setIsConnecting(false)
-        setShouldConnect(false)
-        // Fallback to mock for development
-        setTimeout(() => {
-          const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
-          onContinue(mockAddress)
-        }, 500)
-      }
-    } else {
-      // Fallback to mock if no wallet found (for development/demo)
-      setTimeout(() => {
-        const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
-        onContinue(mockAddress)
-        setIsConnecting(false)
-        setShouldConnect(false)
-      }, 1500)
+      }, 30000) // 30 second timeout
+
+      await connect({ connector: injectedConnector })
+      
+      // Clear timeout if connection succeeds
+      clearTimeout(timeoutId)
+      
+      // The useEffect will handle calling onContinue when connected
+    } catch (error: any) {
+      console.error("Failed to connect wallet:", error)
+      clearTimeout(timeoutId)
+      setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
+      setIsConnecting(false)
     }
   }
 
@@ -163,14 +171,46 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
             </label>
           </div>
 
+          {/* Connection Error */}
+          {connectionError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{connectionError}</p>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isConnecting && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-900">Connecting Wallet...</p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Please approve the connection in your wallet (MetaMask, etc.)
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Continue Button */}
           <Button
             onClick={handleContinue}
             disabled={!acknowledged || isConnecting || isPending}
             className="w-full h-12 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isConnecting || isPending ? "Connecting Wallet..." : "Continue"}
-            <ChevronRight className="ml-2 h-5 w-5" />
+            {isConnecting || isPending ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Connecting...
+              </>
+            ) : (
+              <>
+                <Wallet className="mr-2 h-5 w-5" />
+                Connect Wallet & Continue
+              </>
+            )}
+            {!isConnecting && !isPending && <ChevronRight className="ml-2 h-5 w-5" />}
           </Button>
         </div>
       </Card>
