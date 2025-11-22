@@ -37,6 +37,17 @@ const nextConfig = {
       '@metamask/sdk',
     ],
   },
+  // Webpack configuration to handle CSS imports
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Ignore CSS imports on server side
+      config.module.rules.push({
+        test: /\.css$/,
+        use: 'ignore-loader',
+      })
+    }
+    return config
+  },
 }
 
 export default nextConfig
