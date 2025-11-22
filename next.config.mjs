@@ -18,20 +18,22 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Exclude problematic packages from server components
+    serverComponentsExternalPackages: ['pino', 'thread-stream'],
   },
-  webpack: (config, { isServer }) => {
-    // Exclude test files from node_modules
+  // Use webpack instead of turbopack for build to avoid test file issues
+  webpack: (config) => {
+    // Ignore test files and directories
+    config.resolve = config.resolve || {}
+    config.resolve.alias = config.resolve.alias || {}
+    
+    // Ignore test directories
     config.module = config.module || {}
     config.module.rules = config.module.rules || []
     config.module.rules.push({
-      test: /\.(test|spec)\.(js|ts|mjs)$/,
-      exclude: /node_modules/,
+      test: /node_modules\/thread-stream\/test/,
+      use: 'ignore-loader',
     })
-    
-    // Ignore test directories in node_modules
-    config.resolve = config.resolve || {}
-    config.resolve.alias = config.resolve.alias || {}
-    config.resolve.alias['thread-stream/test'] = false
     
     return config
   },
