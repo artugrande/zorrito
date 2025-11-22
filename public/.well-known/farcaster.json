@@ -1,0 +1,13 @@
+{
+  "version": "1",
+  "name": "Zorrito",
+  "iconUrl": "https://zorrito.vercel.app/iconzorritofarcaster.png",
+  "splashImageUrl": "https://zorrito.vercel.app/splashimage.png",
+  "splashBackgroundColor": "#F5F0EC",
+  "urls": {
+    "allowedOrigins": [
+      "https://zorrito.vercel.app"
+    ]
+  }
+}
+

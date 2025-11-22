@@ -111,6 +111,14 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta
+          name="fc:miniapp"
+          content='{"version":"1","imageUrl":"https://zorrito.vercel.app/splashimage.png","button":{"title":"Play Zorrito 🦊","action":{"type":"launch_miniapp","url":"https://zorrito.vercel.app/"}}}'
+        />
+        <meta
+          name="fc:frame"
+          content='{"version":"1","imageUrl":"https://zorrito.vercel.app/splashimage.png","button":{"title":"Play Zorrito 🦊","action":{"type":"launch_frame","url":"https://zorrito.vercel.app/"}}}'
+        />
       </head>
       <body className="font-sans antialiased bg-[#D8731F] text-white">
         <Providers>
