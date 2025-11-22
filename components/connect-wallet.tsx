@@ -43,9 +43,11 @@ export function ConnectWallet({ onConnect }: ConnectWalletProps) {
 
     // Try to connect with injected wallet (MetaMask, etc.)
     const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
-    if (injectedConnector) {
+    
+    if (injectedConnector && typeof window !== "undefined" && window.ethereum) {
       try {
-        connect({ connector: injectedConnector })
+        await connect({ connector: injectedConnector })
+        // The useEffect will handle calling onConnect when connected
       } catch (error) {
         console.error("Failed to connect wallet:", error)
         // Fallback to mock for development
@@ -56,7 +58,7 @@ export function ConnectWallet({ onConnect }: ConnectWalletProps) {
         }, 1500)
       }
     } else {
-      // Fallback to mock if no wallet found
+      // Fallback to mock if no wallet found (for development/demo)
       setTimeout(() => {
         const mockAddress = "0x" + Math.random().toString(16).substring(2, 42)
         onConnect(mockAddress)
