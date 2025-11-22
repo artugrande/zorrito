@@ -36,8 +36,22 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     hash: hash || undefined,
     query: {
       enabled: !!hash, // Only query when hash exists
+      retry: 3, // Retry up to 3 times
     },
   })
+
+  // Debug logging
+  useEffect(() => {
+    if (hash) {
+      console.log("Transaction hash:", hash)
+    }
+    if (isConfirmed) {
+      console.log("Transaction confirmed!")
+    }
+    if (receiptError) {
+      console.error("Receipt error:", receiptError)
+    }
+  }, [hash, isConfirmed, receiptError])
 
   // Show success screen when transaction is confirmed
   useEffect(() => {
