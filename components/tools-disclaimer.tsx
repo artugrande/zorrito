@@ -64,19 +64,16 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
     setIsConnecting(true)
     setConnectionError(null)
 
-    // Check if wallet is available
-    const hasWallet = typeof window !== "undefined" && (window.ethereum || (window as any).web3)
+    // Prioritize Farcaster MiniApp connector if available (when running in Farcaster)
+    const farcasterConnector = connectors.find((c) => c.id === "farcasterMiniApp" || c.name?.toLowerCase().includes("farcaster"))
     
-    if (!hasWallet) {
-      setConnectionError("No wallet found. Please install MetaMask or another Web3 wallet.")
-      setIsConnecting(false)
-      return
-    }
-
-    // Try to connect with injected wallet (MetaMask, etc.)
+    // Fallback to injected wallet (MetaMask, etc.) if not in Farcaster context
     const injectedConnector = connectors.find((c) => c.id === "injected" || c.id === "metaMask")
     
-    if (!injectedConnector) {
+    // Use Farcaster connector if available, otherwise use injected
+    const connectorToUse = farcasterConnector || injectedConnector
+    
+    if (!connectorToUse) {
       setConnectionError("Wallet connector not found. Please refresh the page.")
       setIsConnecting(false)
       return
@@ -93,7 +90,7 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
         }
       }, 30000) // 30 second timeout
 
-      await connect({ connector: injectedConnector })
+      await connect({ connector: connectorToUse })
       
       // Clear timeout if connection succeeds
       if (timeoutId) clearTimeout(timeoutId)
