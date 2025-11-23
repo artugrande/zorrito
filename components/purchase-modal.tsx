@@ -143,16 +143,27 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     // Check balance and allowance before depositing
     if (address && publicClient) {
       try {
-        // Check balance
-        const balance = await publicClient.readContract({
+        // Check CELO token (ERC20) balance - this is what the contract needs
+        const tokenBalance = await publicClient.readContract({
           address: CELO_TOKEN_ADDRESS,
           abi: ERC20_ABI,
           functionName: 'balanceOf',
           args: [address],
         }) as bigint
 
-        if (balance < amountWei) {
-          setError(`Insufficient CELO balance. You need ${totalCost} CELO but only have ${(Number(balance) / 1e18).toFixed(6)} CELO.`)
+        // Also check native CELO balance for better error messages
+        const nativeBalance = await publicClient.getBalance({ address })
+
+        if (tokenBalance < amountWei) {
+          const tokenBalanceFormatted = (Number(tokenBalance) / 1e18).toFixed(6)
+          const nativeBalanceFormatted = (Number(nativeBalance) / 1e18).toFixed(6)
+          
+          if (nativeBalance >= amountWei) {
+            // User has native CELO but not token CELO - needs to convert
+            setError(`You have ${nativeBalanceFormatted} CELO native, but the contract needs CELO token (ERC20). You need to convert your native CELO to CELO token first. You can do this by swapping on a DEX or using the Celo wallet.`)
+          } else {
+            setError(`Insufficient CELO token balance. You need ${totalCost} CELO token but only have ${tokenBalanceFormatted} CELO token.`)
+          }
           return
         }
 
