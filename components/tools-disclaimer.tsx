@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ChevronRight, Loader2, Wallet } from "lucide-react"
-import { useConnect, useAccount } from "wagmi"
+import { useConnect, useAccount, useWalletClient, useChainId } from "wagmi"
+import { CELO_MAINNET_CHAIN_ID } from "@/lib/contracts/constants"
 
 interface ToolsDisclaimerProps {
   onContinue: (address: string) => void
@@ -48,14 +49,36 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   // Use wagmi with Farcaster connector (automatically connects if wallet already connected)
   const { connect, connectors, isPending } = useConnect()
   const { address, isConnected } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const chainId = useChainId()
 
-  // Only continue when wallet is actually connected
+  // Force switch to Celo Mainnet after connection
   useEffect(() => {
-    if (isConnected && address) {
+    const switchToCelo = async () => {
+      if (isConnected && address && walletClient && chainId !== CELO_MAINNET_CHAIN_ID) {
+        try {
+          console.log("Switching to Celo Mainnet...")
+          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+          console.log("Switched to Celo Mainnet successfully")
+          // Wait a bit for the chain to update
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } catch (err: any) {
+          console.error("Error switching to Celo Mainnet:", err)
+          setConnectionError("Please switch to Celo Mainnet manually in your wallet.")
+        }
+      }
+    }
+
+    switchToCelo()
+  }, [isConnected, address, walletClient, chainId])
+
+  // Only continue when wallet is actually connected and on Celo Mainnet
+  useEffect(() => {
+    if (isConnected && address && chainId === CELO_MAINNET_CHAIN_ID) {
       setConnectionError(null)
       onContinue(address)
     }
-  }, [isConnected, address, onContinue])
+  }, [isConnected, address, chainId, onContinue])
 
   const handleContinue = async () => {
     if (!acknowledged) return
