@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
-import { useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain, usePublicClient, useWalletClient, useAccount } from "wagmi"
+import { useWriteContract, useWaitForTransactionReceipt, useChainId, usePublicClient, useWalletClient, useAccount } from "wagmi"
 import { parseEther, maxUint256 } from "viem"
 import { ZORRITO_YIELD_ESCROW_ADDRESS, CELO_TOKEN_ADDRESS } from "@/lib/contracts/constants"
 import { ZORRITO_YIELD_ESCROW_ABI, ERC20_ABI } from "@/lib/contracts/abis"
@@ -29,9 +29,9 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
 
   // All hooks must be called before any conditional returns
   const chainId = useChainId()
-  const { switchChain } = useSwitchChain()
+  // Don't use useSwitchChain to avoid connector.getChainId() issues with Farcaster
   const publicClient = usePublicClient()
-  const walletClient = useWalletClient()
+  const { data: walletClient } = useWalletClient()
   const { address } = useAccount()
   const CELO_MAINNET_CHAIN_ID = 42220
 
@@ -76,11 +76,21 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const handleDeposit = useCallback(async () => {
     if (!item) return
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
-      try {
-        await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
-        return
-      } catch (err: any) {
-        setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
+      // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
+      if (walletClient) {
+        try {
+          // Use walletClient's switchChain method
+          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+          // Wait a bit for chain to switch before continuing
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return
+        } catch (err: any) {
+          console.error("Chain switch error:", err)
+          setError("Please switch to Celo Mainnet manually in your wallet.")
+          return
+        }
+      } else {
+        setError("Please switch to Celo Mainnet manually in your wallet.")
         return
       }
     }
@@ -100,15 +110,25 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       console.error("Deposit error:", err)
       setError(err?.message || "Failed to deposit CELO")
     }
-  }, [chainId, switchChain, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item])
+  }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item])
 
   const handleApprove = useCallback(async () => {
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
-      try {
-        await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
-        return
-      } catch (err: any) {
-        setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
+      // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
+      if (walletClient) {
+        try {
+          // Use walletClient's switchChain method
+          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+          // Wait a bit for chain to switch before continuing
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return
+        } catch (err: any) {
+          console.error("Chain switch error:", err)
+          setError("Please switch to Celo Mainnet manually in your wallet.")
+          return
+        }
+      } else {
+        setError("Please switch to Celo Mainnet manually in your wallet.")
         return
       }
     }
@@ -128,7 +148,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       setError(err?.message || "Failed to approve CELO token")
       setIsApproving(false)
     }
-  }, [chainId, switchChain, writeContractApprove])
+  }, [chainId, walletClient, writeContractApprove])
 
   // Check allowance when component mounts or address changes
   useEffect(() => {
@@ -238,11 +258,21 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     
     // Always ensure we're on Celo Mainnet
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
-      try {
-        await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
-        return
-      } catch (err: any) {
-        setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
+      // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
+      if (walletClient) {
+        try {
+          // Use walletClient's switchChain method
+          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+          // Wait a bit for chain to switch before continuing
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return
+        } catch (err: any) {
+          console.error("Chain switch error:", err)
+          setError("Please switch to Celo Mainnet manually in your wallet.")
+          return
+        }
+      } else {
+        setError("Please switch to Celo Mainnet manually in your wallet.")
         return
       }
     }
@@ -255,7 +285,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
 
     // Otherwise, deposit directly
     handleDeposit()
-  }, [chainId, switchChain, needsApproval, isApprovalConfirmed, handleApprove, handleDeposit])
+  }, [chainId, walletClient, needsApproval, isApprovalConfirmed, handleApprove, handleDeposit])
 
   const handleClose = () => {
     // Only allow closing if transaction is not in progress
