@@ -17,22 +17,11 @@ const nextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Temporarily disable optimizePackageImports to fix initialization errors
+    // optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // Exclude problematic packages from server components (moved from experimental in Next.js 16)
-  serverComponentsExternalPackages: [
-    'pino',
-    'thread-stream',
-    'tap',
-    'desm',
-    'fastbench',
-    'pino-elasticsearch',
-    'why-is-node-running',
-    'tape',
-    '@walletconnect/ethereum-provider',
-    '@farcaster/miniapp-sdk',
-    '@metamask/sdk',
-  ],
+  // Note: serverComponentsExternalPackages moved to top level in Next.js 16
+  // Keeping for compatibility but may show warning
 }
 
 export default nextConfig
