@@ -93,7 +93,12 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     }
 
     if (!walletClient) {
-      setError("Wallet not connected")
+      setError("Wallet not connected. Please connect your wallet and try again.")
+      return
+    }
+
+    if (!address) {
+      setError("Wallet address not available. Please reconnect your wallet.")
       return
     }
 
@@ -199,22 +204,28 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const handleConfirmPurchase = useCallback(async () => {
     setError(null)
     
+    // Check if wallet is connected
+    if (!address) {
+      setError("Wallet not connected. Please connect your wallet first.")
+      return
+    }
+
+    if (!walletClient) {
+      setError("Wallet client not available. Please try again or refresh the page.")
+      return
+    }
+    
     // Always ensure we're on Celo Mainnet
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
       // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
-      if (walletClient) {
-        try {
-          // Use walletClient's switchChain method
-          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
-          // Wait a bit for chain to switch before continuing
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          return
-        } catch (err: any) {
-          console.error("Chain switch error:", err)
-          setError("Please switch to Celo Mainnet manually in your wallet.")
-          return
-        }
-      } else {
+      try {
+        // Use walletClient's switchChain method
+        await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+        // Wait a bit for chain to switch before continuing
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return
+      } catch (err: any) {
+        console.error("Chain switch error:", err)
         setError("Please switch to Celo Mainnet manually in your wallet.")
         return
       }
