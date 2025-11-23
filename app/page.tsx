@@ -1,11 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { ConnectWallet } from "@/components/connect-wallet"
-import { ToolsDisclaimer } from "@/components/tools-disclaimer"
-import { CreateFox } from "@/components/create-fox"
-import { FoxHome } from "@/components/fox-home"
+import dynamic from "next/dynamic"
 import { FarcasterReady } from "@/components/farcaster-ready"
+
+// Lazy load components to avoid initialization order issues
+const ConnectWallet = dynamic(() => import("@/components/connect-wallet").then(mod => ({ default: mod.ConnectWallet })), { ssr: false })
+const ToolsDisclaimer = dynamic(() => import("@/components/tools-disclaimer").then(mod => ({ default: mod.ToolsDisclaimer })), { ssr: false })
+const CreateFox = dynamic(() => import("@/components/create-fox").then(mod => ({ default: mod.CreateFox })), { ssr: false })
+const FoxHome = dynamic(() => import("@/components/fox-home").then(mod => ({ default: mod.FoxHome })), { ssr: false })
 
 type Screen = "connect" | "disclaimer" | "create" | "home"
 
