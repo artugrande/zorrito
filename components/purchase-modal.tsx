@@ -22,6 +22,7 @@ interface PurchaseModalProps {
 export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingTransaction, setPendingTransaction] = useState<{ to: `0x${string}`, value: bigint } | null>(null)
 
   // All hooks must be called before any conditional returns
   // Use useChainId hook which is more reliable with Farcaster connector
@@ -91,8 +92,24 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     if (!open) {
       setShowSuccess(false)
       setError(null)
+      setPendingTransaction(null)
     }
   }, [open])
+
+  // Auto-send transaction when chain switches to Celo Mainnet
+  useEffect(() => {
+    if (pendingTransaction && chainId === CELO_MAINNET_CHAIN_ID && !isSending && !hash) {
+      console.log("Chain switched to Celo Mainnet, sending pending transaction...")
+      try {
+        sendTransaction(pendingTransaction)
+        setPendingTransaction(null)
+      } catch (err) {
+        console.error("Failed to send pending transaction:", err)
+        setError(err instanceof Error ? err.message : "Failed to send transaction")
+        setPendingTransaction(null)
+      }
+    }
+  }, [chainId, pendingTransaction, isSending, hash, CELO_MAINNET_CHAIN_ID, sendTransaction])
 
   // Now we can do conditional returns after all hooks
   if (!item) return null
@@ -104,34 +121,34 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const handleConfirmPurchase = async () => {
     setError(null)
     
-    // Check if we're on the correct chain
+    const transactionData = {
+      to: TREASURY_WALLET_ADDRESS as `0x${string}`,
+      value: transactionValue,
+    }
+
+    // Always ensure we're on Celo Mainnet before sending transaction
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
       try {
+        console.log(`Current chain: ${chainId}, switching to Celo Mainnet (${CELO_MAINNET_CHAIN_ID})`)
+        // Store transaction to send after chain switch
+        setPendingTransaction(transactionData)
+        // Switch chain - the useEffect will handle sending the transaction once switched
         await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
-        // Wait a bit for chain switch
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        // Retry sending transaction after chain switch
-        try {
-          sendTransaction({
-            to: TREASURY_WALLET_ADDRESS as `0x${string}`,
-            value: transactionValue,
-          })
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to send transaction after chain switch")
-        }
         return
-      } catch (err) {
-        setError("Please switch to Celo Mainnet network in your wallet")
+      } catch (err: any) {
+        console.error("Chain switch error:", err)
+        setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
+        setPendingTransaction(null)
         return
       }
     }
 
+    // Already on Celo Mainnet, send transaction directly
     try {
-      sendTransaction({
-        to: TREASURY_WALLET_ADDRESS as `0x${string}`,
-        value: transactionValue,
-      })
+      console.log(`Sending transaction on Celo Mainnet: ${totalCost} CELO`)
+      sendTransaction(transactionData)
     } catch (err) {
+      console.error("Transaction error:", err)
       setError(err instanceof Error ? err.message : "Failed to send transaction")
     }
   }
