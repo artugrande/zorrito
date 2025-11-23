@@ -101,7 +101,7 @@ zorrito/
 └── public/                   # Static assets
 ```
 
-🛠️ Development
+### 🛠️ Development
 # Start development server
 
 ```bash
@@ -114,7 +114,7 @@ npm run build
 npm start
 ```
 
-📚 Documentation
+### 📚 Documentation
 
 Verification Contracts
  – Full guide to deploying the contracts
@@ -125,7 +125,7 @@ Self Protocol Docs
 Foundry Book
  – Official Foundry documentation
 
-🔗 Links
+### 🔗 Links
 
 App: Zorrito Finance
 
@@ -133,7 +133,7 @@ Self Protocol: self.xyz
 
 Rewilding Argentina: rewildingargentina.org
 
-⚠️ Important Notes
+### ⚠️ Important Notes
 
 Scope Seed must be identical in both the contract (contracts/.env) and the frontend (.env.local).
 
@@ -143,7 +143,7 @@ Mainnet: This project is configured for production on Celo Mainnet.
 
 Security: Never share your PRIVATE_KEY publicly.
 
-🧩 Celo Integration
+### 🧩 Celo Integration
 
 Zorrito Finance runs on-chain on Celo Mainnet (chainId 42220) and uses verified contracts to represent each fox as an NFT and to manage user savings / yield.
 
@@ -211,7 +211,7 @@ A way to turn savings habits into a DeFi game accessible to non-technical users.
 
 Easy to integrate with other protocols in the Celo DeFi ecosystem.
 
-📱 Farcaster MiniApp & Celo
+### 📱 Farcaster MiniApp & Celo
 
 For the Celo track, Zorrito is also shipped as a Farcaster MiniApp, focused on a native experience inside the social ecosystem:
 
@@ -257,7 +257,7 @@ Farcaster MiniApp integration using the wallet connector to sign Celo transactio
 
 In one sentence: Zorrito Finance turns the habit of saving into a DeFi game on Celo, where feeding your fox is the same as saving on-chain through verified, long-term-oriented contracts.
 
-👥 Team
+### 👥 Team
 
 Zorrito Finance is built by a team based in Rosario, Argentina.
 
@@ -275,7 +275,7 @@ You can also add a simple architecture diagram (Frontend ↔ Farcaster MiniApp �
 
 In addition to running on Celo, Zorrito Finance uses Filecoin Onchain Cloud as a layer of verifiable data storage for foxes and their in-game events, using the Synapse SDK and the Warm Storage service on the Filecoin Calibration Testnet.
 
-🌐 Network & Stack
+### 🌐 Network & Stack
 
 Network: Filecoin Calibration Testnet
 
@@ -299,10 +299,11 @@ List foxes for a given season
 
 Inspect all activity stored on Filecoin
 
-🧬 Zorrito DataSets on Filecoin
+### 🧬 Zorrito DataSets on Filecoin
 
 Each game season is mapped to a DataSet on Filecoin with strongly-typed metadata:
 
+```
 DataSetMetadata = {
   appId: "zorrito.finance",
   appUrl: "https://zorrito.vercel.app",
@@ -311,7 +312,7 @@ DataSetMetadata = {
   season: "2025-11",
   gameVersion: "1.0.0",
 }
-
+```
 
 This structure lets us:
 
@@ -320,3 +321,4 @@ Group all pieces (fox profiles + feeding events) by season.
 Quickly query the history of a fox by reading its pieces and metadata from Warm Storage.
 
 Prove, on Filecoin, that the data linked to each fox and season was actually stored and can be verified later.
+
