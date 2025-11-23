@@ -263,11 +263,11 @@ Zorrito Finance is built by a team based in Rosario, Argentina.
 
 Fill in with your real team details, for example:
 
-Mateo Emilio (@your_handle) – Fullstack dev, smart contracts & infra
+Mateo Emilio (@MateoEmilio) – Fullstack dev, smart contracts & infra
 
-Member 2 (@handle) – UX/UI & frontend
+Member 2 (@alerepetto5) – UX/UI & frontend
 
-Member 3 (@handle) – Game design & product
+Member 3 (@artugrande) – Game design & product
 
 You can also add a simple architecture diagram (Frontend ↔ Farcaster MiniApp ↔ Celo Contracts ↔ Self Protocol) as text or an image so the README is even clearer for judges.
 
@@ -283,7 +283,7 @@ SDK: @filoz/synapse-sdk
 
 Service: Warm Storage (datasets + pieces with metadata)
 
-Backend Repo: zorrito-finance-backend
+Backend Repo: zorrito-finance-backend (https://github.com/MateoEmilio1/zorrito-finance-backend)
 
 On the backend we have a dedicated service (zorritoStorageService) that:
 
@@ -297,7 +297,7 @@ Create foxes
 
 List foxes for a given season
 
-Inspect all activity stored on Filecoin
+Inspect all activity stored on Filecoin. See the backend repo for this (command: "test:metadata": "tsx src/test-dataset-piece-metadata.ts") : https://github.com/MateoEmilio1/zorrito-finance-backend
 
 ### 🧬 Zorrito DataSets on Filecoin
 
@@ -321,4 +321,5 @@ Group all pieces (fox profiles + feeding events) by season.
 Quickly query the history of a fox by reading its pieces and metadata from Warm Storage.
 
 Prove, on Filecoin, that the data linked to each fox and season was actually stored and can be verified later.
+
 
