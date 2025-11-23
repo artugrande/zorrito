@@ -69,13 +69,12 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     },
   })
 
-  // Now we can do conditional returns after all hooks
-  if (!item) return null
-
-  const totalCost = (item.price * item.quantity).toFixed(18) // Full precision for CELO amounts
-  const amountWei = parseEther(totalCost)
+  // Calculate values (must be before useCallback hooks)
+  const totalCost = item ? (item.price * item.quantity).toFixed(18) : "0" // Full precision for CELO amounts
+  const amountWei = item ? parseEther(totalCost) : 0n
 
   const handleDeposit = useCallback(async () => {
+    if (!item) return
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
       try {
         await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
@@ -101,7 +100,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       console.error("Deposit error:", err)
       setError(err?.message || "Failed to deposit CELO")
     }
-  }, [chainId, switchChain, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID])
+  }, [chainId, switchChain, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item])
 
   const handleApprove = useCallback(async () => {
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
@@ -268,6 +267,9 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   }
 
   const isTransactionPending = isDepositing || isConfirming || isApproving || isApprovalConfirming
+
+  // Now we can do conditional returns after all hooks
+  if (!item) return null
 
   if (showSuccess) {
     return (
