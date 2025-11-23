@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Wallet, ArrowLeft } from "lucide-react"
 import { Footer } from "@/components/footer"
 import { Textarea } from "@/components/ui/textarea"
+import { useCreateFox } from "@/hooks/use-create-fox"
+import { useToast } from "@/hooks/use-toast"
 
 interface CreateFoxProps {
   walletAddress: string
@@ -42,10 +44,13 @@ export function CreateFox({ walletAddress, onFoxCreated, onBack }: CreateFoxProp
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
-  const [isMinting, setIsMinting] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [nameError, setNameError] = useState("")
   const [customizationError, setCustomizationError] = useState("")
+  const [createdFox, setCreatedFox] = useState<any>(null)
+
+  const { mutateAsync: createFox, isPending: isMinting } = useCreateFox()
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     etapa: "Young",
@@ -118,16 +123,47 @@ export function CreateFox({ walletAddress, onFoxCreated, onBack }: CreateFoxProp
   }
 
   const handleMint = async () => {
-    setIsMinting(true)
+    if (!generatedImage) {
+      toast({
+        title: "Generate your fox first",
+        description: "Create an image before minting your fox.",
+      })
+      return
+    }
 
-    setTimeout(() => {
-      setIsMinting(false)
+    if (!walletAddress) {
+      toast({
+        title: "Connect your wallet",
+        description: "We need your wallet address to mint your fox.",
+      })
+      return
+    }
+
+    try {
+      const fox = await createFox({
+        name: formData.nombre,
+        imageDataUrl: generatedImage,
+        owner: walletAddress,
+      })
+
+      setCreatedFox(fox)
       setShowSuccessModal(true)
-    }, 2000)
+
+      toast({
+        title: "Fox created!",
+        description: "Your fox was saved to the backend.",
+      })
+    } catch (error) {
+      console.error("Error creating fox:", error)
+      toast({
+        title: "Failed to mint fox",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+      })
+    }
   }
 
   const handleContinue = () => {
-    onFoxCreated({
+    onFoxCreated(createdFox || {
       ...formData,
       image: generatedImage,
     })
