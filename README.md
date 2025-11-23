@@ -323,3 +323,64 @@ Quickly query the history of a fox by reading its pieces and metadata from Warm 
 Prove, on Filecoin, that the data linked to each fox and season was actually stored and can be verified later.
 
 
+🧩 Self Protocol Track (Age Verification)
+
+Zorrito Finance implements a full age-verification flow using Self Protocol, ensuring only users 13+ can play. The flow is live, on-chain, and fully auditable.
+
+🎯 What We Implemented
+
+Self age verification using QR-based flow.
+
+ProofOfHuman.sol contract on Celo Mainnet to register and verify attestations.
+
+Frontend integration (Next.js) that blocks gameplay until verification is complete.
+
+Filecoin Warm Storage record (hash/metadata) per season linking verification events.
+
+Auditable path: any judge can verify a wallet → check isVerified() → see events → inspect Filecoin dataset entry.
+
+🔐 How It Works (Short)
+
+User connects a Celo wallet (MiniPay / Farcaster / any 42220 wallet).
+
+Frontend shows a Self QR with our scopeSeed.
+
+User completes the verification in the Self app.
+
+Frontend receives the attestation and calls:
+registerAttestation(attestation) on ProofOfHuman.sol.
+
+Contract emits Verified(user, claimHash, timestamp) on Celo.
+
+Backend stores the metadata hash in a Filecoin DataSet (per season).
+
+User can now create their fox and play.
+
+🧪 Judge Checklist
+
+Connect wallet → blocked until verified.
+
+Scan Self QR → finish verification.
+
+Transaction to ProofOfHuman appears on Celoscan.
+
+Event Verified(address) visible on-chain.
+
+Filecoin dataset entry exists for that verification.
+
+isVerified(address) returns true.
+
+🔗 Key Components
+
+Contract: contracts/src/ProofOfHuman.sol
+
+QR Component: components/age-verification.tsx
+
+Env Vars:
+
+NEXT_PUBLIC_SELF_APP_NAME="Zorrito Finance"
+NEXT_PUBLIC_SELF_SCOPE_SEED="zorrito-finance"
+NEXT_PUBLIC_SELF_ENDPOINT=0x9859590cdb98d43e5500fe5d6fa077ee787969d3
+NEXT_PUBLIC_SELF_ENDPOINT_TYPE="celo"
+
+
