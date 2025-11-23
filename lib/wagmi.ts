@@ -1,37 +1,15 @@
 'use client'
 
 import { createConfig, http } from 'wagmi'
+import { celo } from 'wagmi/chains'
 import { injected, metaMask } from 'wagmi/connectors'
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector'
 
-// Celo Mainnet chain configuration
-const celo = {
-  id: 42220,
-  name: 'Celo',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'CELO',
-    symbol: 'CELO',
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://forno.celo.org'],
-    },
-    public: {
-      http: ['https://forno.celo.org'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'CeloScan',
-      url: 'https://celoscan.io',
-    },
-  },
-  testnet: false,
-} as const
+// Use official Celo chain from Wagmi to ensure proper nativeCurrency configuration
+// This ensures wallets display "CELO" instead of "ETH"
 
 export const config = createConfig({
-  chains: [celo],
+  chains: [celo], // Official Celo chain from Wagmi with proper nativeCurrency: { name: 'CELO', symbol: 'CELO' }
   connectors: [
     farcasterMiniApp(), // Farcaster MiniApp connector (connects automatically if wallet already connected)
     injected(),
