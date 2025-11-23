@@ -313,8 +313,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-zinc-950 border-zinc-800 max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">Confirm Purchase</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">Review your purchase before confirming</DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">Purchase Item</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 sm:space-y-4">
           <div className="p-3 sm:p-4 bg-black rounded-lg border border-zinc-800 space-y-2 sm:space-y-3">
@@ -338,41 +337,6 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             </div>
           </div>
 
-          <div className="p-2.5 sm:p-3 bg-green-950/20 rounded-lg border border-green-800">
-            <p className="text-xs sm:text-sm text-green-200 leading-relaxed">
-              ✅ <strong>This purchase will deposit {totalCost} CELO to the escrow</strong> - your money will generate yield and you can withdraw it anytime.
-            </p>
-          </div>
-
-          <div className="p-2.5 sm:p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
-            <p className="text-xs sm:text-sm text-yellow-200 leading-relaxed">
-              ⚠️ This item will be consumed immediately after purchase and cannot be refunded.
-            </p>
-          </div>
-
-          <div className="p-3 sm:p-4 bg-blue-950/20 rounded-lg border border-blue-800 space-y-2">
-            <p className="text-xs sm:text-sm font-semibold text-blue-200 mb-2">📋 Transaction Preview</p>
-            <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 bg-black/30 p-2 rounded">
-                <span className="text-blue-300 text-xs">You will spend:</span>
-                <span className="font-bold text-white text-base sm:text-lg">{totalCost} CELO</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 bg-black/30 p-2 rounded">
-                <span className="text-blue-300 text-xs">Contract:</span>
-                <span className="font-mono text-blue-200 text-[10px] sm:text-xs break-all sm:break-normal">{ZORRITO_YIELD_ESCROW_ADDRESS}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 bg-black/30 p-2 rounded">
-                <span className="text-blue-300 text-xs">Function:</span>
-                <span className="text-blue-200 text-xs sm:text-sm break-all sm:break-normal">deposit({totalCost} CELO)</span>
-              </div>
-            </div>
-            <div className="mt-2 sm:mt-3 p-2 bg-yellow-900/20 border border-yellow-700 rounded">
-              <p className="text-[10px] sm:text-xs text-yellow-200 leading-relaxed">
-                ⚠️ <strong>Important:</strong> The wallet will show the escrow contract address ({ZORRITO_YIELD_ESCROW_ADDRESS.slice(0, 8)}...{ZORRITO_YIELD_ESCROW_ADDRESS.slice(-6)}). 
-                The amount {totalCost} CELO is in the function parameters. This is safe - you're depositing to the escrow to generate yield.
-              </p>
-            </div>
-          </div>
 
           {error && (
             <div className="p-2.5 sm:p-3 bg-red-950/20 rounded-lg border border-red-800">
