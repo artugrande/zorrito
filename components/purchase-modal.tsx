@@ -3,10 +3,11 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useSendTransaction, useWaitForTransactionReceipt, useChainId, useSwitchChain } from "wagmi"
-import { parseUnits } from "viem"
-import { TREASURY_WALLET_ADDRESS } from "@/lib/wagmi"
+import { useState, useEffect, useCallback } from "react"
+import { useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain, usePublicClient, useWalletClient, useAccount } from "wagmi"
+import { parseEther, maxUint256 } from "viem"
+import { ZORRITO_YIELD_ESCROW_ADDRESS, CELO_TOKEN_ADDRESS } from "@/lib/contracts/constants"
+import { ZORRITO_YIELD_ESCROW_ABI, ERC20_ABI } from "@/lib/contracts/abis"
 
 interface PurchaseModalProps {
   open: boolean
@@ -22,63 +23,198 @@ interface PurchaseModalProps {
 export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [pendingTransaction, setPendingTransaction] = useState<{ to: `0x${string}`, value: bigint } | null>(null)
+  const [needsApproval, setNeedsApproval] = useState(false)
+  const [isApproving, setIsApproving] = useState(false)
+  const [approveHash, setApproveHash] = useState<`0x${string}` | null>(null)
 
   // All hooks must be called before any conditional returns
-  // Use useChainId hook which is more reliable with Farcaster connector
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
-  // Use Celo Mainnet (chain ID 42220)
+  const publicClient = usePublicClient()
+  const walletClient = useWalletClient()
+  const { address } = useAccount()
   const CELO_MAINNET_CHAIN_ID = 42220
 
+  // Write contract hooks
+  // Don't use usePrepareContractWrite to avoid connector.getChainId() issues with Farcaster
   const {
-    data: hash,
-    isPending: isSending,
-    error: sendError,
-    sendTransaction,
-  } = useSendTransaction()
+    writeContract: writeContractDeposit,
+    data: depositHash,
+    isPending: isDepositing,
+    error: depositError,
+  } = useWriteContract()
 
-  // Only wait for receipt if we have a transaction hash
-  const { isLoading: isConfirming, isSuccess: isConfirmed, error: receiptError } = useWaitForTransactionReceipt({
-    hash: hash || undefined,
+  const {
+    writeContract: writeContractApprove,
+    data: approveTxHash,
+    isPending: isApprovingTx,
+    error: approveError,
+  } = useWriteContract()
+
+  // Wait for approval transaction
+  const { isLoading: isApprovalConfirming, isSuccess: isApprovalConfirmed } = useWaitForTransactionReceipt({
+    hash: approveHash || approveTxHash || undefined,
     query: {
-      enabled: !!hash, // Only query when hash exists
-      retry: 3, // Retry up to 3 times
+      enabled: !!(approveHash || approveTxHash),
+      retry: 3,
     },
   })
 
+  // Wait for deposit transaction
+  const { isLoading: isConfirming, isSuccess: isConfirmed, error: receiptError } = useWaitForTransactionReceipt({
+    hash: depositHash || undefined,
+    query: {
+      enabled: !!depositHash,
+      retry: 3,
+    },
+  })
+
+  // Now we can do conditional returns after all hooks
+  if (!item) return null
+
+  const totalCost = (item.price * item.quantity).toFixed(18) // Full precision for CELO amounts
+  const amountWei = parseEther(totalCost)
+
+  const handleDeposit = useCallback(async () => {
+    if (chainId !== CELO_MAINNET_CHAIN_ID) {
+      try {
+        await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
+        return
+      } catch (err: any) {
+        setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
+        return
+      }
+    }
+
+    setError(null)
+
+    try {
+      // Always use manual call to avoid connector.getChainId() issues
+      writeContractDeposit({
+        address: ZORRITO_YIELD_ESCROW_ADDRESS,
+        abi: ZORRITO_YIELD_ESCROW_ABI,
+        functionName: 'deposit',
+        args: [amountWei],
+        chainId: CELO_MAINNET_CHAIN_ID, // Explicitly set chainId to avoid connector issues
+      })
+    } catch (err: any) {
+      console.error("Deposit error:", err)
+      setError(err?.message || "Failed to deposit CELO")
+    }
+  }, [chainId, switchChain, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID])
+
+  const handleApprove = useCallback(async () => {
+    if (chainId !== CELO_MAINNET_CHAIN_ID) {
+      try {
+        await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
+        return
+      } catch (err: any) {
+        setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
+        return
+      }
+    }
+
+    setError(null)
+    setIsApproving(true)
+
+    try {
+      writeContractApprove({
+        address: CELO_TOKEN_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [ZORRITO_YIELD_ESCROW_ADDRESS, maxUint256],
+      })
+    } catch (err: any) {
+      console.error("Approval error:", err)
+      setError(err?.message || "Failed to approve CELO token")
+      setIsApproving(false)
+    }
+  }, [chainId, switchChain, writeContractApprove])
+
+  // Check allowance when component mounts or address changes
+  useEffect(() => {
+    const checkAllowance = async () => {
+      if (!address || !publicClient || !item) return
+
+      try {
+        const allowance = await publicClient.readContract({
+          address: CELO_TOKEN_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'allowance',
+          args: [address, ZORRITO_YIELD_ESCROW_ADDRESS],
+        }) as bigint
+
+        const amountWei = parseEther((item.price * item.quantity).toFixed(18))
+        setNeedsApproval(allowance < amountWei)
+      } catch (err) {
+        console.error('Error checking allowance:', err)
+      }
+    }
+
+    if (chainId === CELO_MAINNET_CHAIN_ID) {
+      checkAllowance()
+    }
+  }, [address, publicClient, item, chainId])
+
+  // Update approve hash when approval transaction is sent
+  useEffect(() => {
+    if (approveTxHash) {
+      setApproveHash(approveTxHash)
+    }
+  }, [approveTxHash])
+
+  // Auto-deposit after approval is confirmed
+  useEffect(() => {
+    if (isApprovalConfirmed && needsApproval && item && !isDepositing && !depositHash && chainId === CELO_MAINNET_CHAIN_ID) {
+      console.log("Approval confirmed, depositing to escrow...")
+      handleDeposit()
+      setNeedsApproval(false) // Reset approval flag
+    }
+  }, [isApprovalConfirmed, needsApproval, item, isDepositing, depositHash, chainId, handleDeposit])
+
   // Debug logging
   useEffect(() => {
-    if (hash) {
-      console.log("Transaction hash:", hash)
+    if (depositHash) {
+      console.log("Deposit transaction hash:", depositHash)
+    }
+    if (approveHash) {
+      console.log("Approval transaction hash:", approveHash)
     }
     if (isConfirmed) {
-      console.log("Transaction confirmed!")
+      console.log("Deposit confirmed!")
     }
     if (receiptError) {
       console.error("Receipt error:", receiptError)
     }
-  }, [hash, isConfirmed, receiptError])
+  }, [depositHash, approveHash, isConfirmed, receiptError])
 
   // Show success screen when transaction is confirmed
   useEffect(() => {
-    if (isConfirmed) {
+    if (isConfirmed && depositHash) {
       setShowSuccess(true)
       setError(null)
-      // Auto-close after 3 seconds
+      // Auto-close after 5 seconds (longer to allow viewing transaction)
       setTimeout(() => {
         setShowSuccess(false)
         onOpenChange(false)
-      }, 3000)
+      }, 5000)
     }
-  }, [isConfirmed, onOpenChange])
+  }, [isConfirmed, depositHash, onOpenChange])
 
-  // Handle send errors
+  // Handle deposit errors
   useEffect(() => {
-    if (sendError) {
-      setError(sendError.message || "Transaction failed. Please try again.")
+    if (depositError) {
+      setError(depositError.message || "Deposit failed. Please try again.")
     }
-  }, [sendError])
+  }, [depositError])
+
+  // Handle approval errors
+  useEffect(() => {
+    if (approveError) {
+      setError(approveError.message || "Approval failed. Please try again.")
+      setIsApproving(false)
+    }
+  }, [approveError])
 
   // Handle receipt errors
   useEffect(() => {
@@ -92,77 +228,46 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     if (!open) {
       setShowSuccess(false)
       setError(null)
-      setPendingTransaction(null)
+      setNeedsApproval(false)
+      setIsApproving(false)
+      setApproveHash(null)
     }
   }, [open])
 
-  // Auto-send transaction when chain switches to Celo Mainnet
-  useEffect(() => {
-    if (pendingTransaction && chainId === CELO_MAINNET_CHAIN_ID && !isSending && !hash) {
-      console.log("Chain switched to Celo Mainnet, sending pending transaction...")
-      try {
-        sendTransaction(pendingTransaction)
-        setPendingTransaction(null)
-      } catch (err) {
-        console.error("Failed to send pending transaction:", err)
-        setError(err instanceof Error ? err.message : "Failed to send transaction")
-        setPendingTransaction(null)
-      }
-    }
-  }, [chainId, pendingTransaction, isSending, hash, CELO_MAINNET_CHAIN_ID, sendTransaction])
-
-  // Now we can do conditional returns after all hooks
-  if (!item) return null
-
-  const totalCost = (item.price * item.quantity).toFixed(6) // More precision for small CELO amounts
-  // Use the actual price in CELO
-  const transactionValue = parseUnits(totalCost, 18)
-
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = useCallback(async () => {
     setError(null)
     
-    const transactionData = {
-      to: TREASURY_WALLET_ADDRESS as `0x${string}`,
-      value: transactionValue,
-    }
-
-    // Always ensure we're on Celo Mainnet before sending transaction
+    // Always ensure we're on Celo Mainnet
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
       try {
-        console.log(`Current chain: ${chainId}, switching to Celo Mainnet (${CELO_MAINNET_CHAIN_ID})`)
-        // Store transaction to send after chain switch
-        setPendingTransaction(transactionData)
-        // Switch chain - the useEffect will handle sending the transaction once switched
         await switchChain({ chainId: CELO_MAINNET_CHAIN_ID })
         return
       } catch (err: any) {
-        console.error("Chain switch error:", err)
         setError(err?.message || "Failed to switch to Celo Mainnet. Please switch manually in your wallet.")
-        setPendingTransaction(null)
         return
       }
     }
 
-    // Already on Celo Mainnet, send transaction directly
-    try {
-      console.log(`Sending transaction on Celo Mainnet: ${totalCost} CELO`)
-      sendTransaction(transactionData)
-    } catch (err) {
-      console.error("Transaction error:", err)
-      setError(err instanceof Error ? err.message : "Failed to send transaction")
+    // If approval is needed, approve first
+    if (needsApproval && !isApprovalConfirmed) {
+      handleApprove()
+      return
     }
-  }
+
+    // Otherwise, deposit directly
+    handleDeposit()
+  }, [chainId, switchChain, needsApproval, isApprovalConfirmed, handleApprove, handleDeposit])
 
   const handleClose = () => {
     // Only allow closing if transaction is not in progress
-    if (!isSending && !isConfirming && !isConfirmed) {
+    if (!isDepositing && !isConfirming && !isApproving && !isApprovalConfirming && !isConfirmed) {
       setShowSuccess(false)
       setError(null)
       onOpenChange(false)
     }
   }
 
-  const isTransactionPending = isSending || isConfirming
+  const isTransactionPending = isDepositing || isConfirming || isApproving || isApprovalConfirming
 
   if (showSuccess) {
     return (
@@ -192,6 +297,23 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             <div className="p-4 bg-green-950/20 rounded-lg border border-green-800 space-y-2">
               <p className="text-zinc-400">Effect</p>
               <p className="text-lg font-semibold text-green-400">{getEffectMessage(item)}</p>
+            </div>
+
+            <div className="p-4 bg-blue-950/20 rounded-lg border border-blue-800 space-y-2">
+              <p className="text-zinc-400">Deposit Status</p>
+              <p className="text-lg font-semibold text-blue-400">
+                {totalCost} CELO deposited to escrow
+              </p>
+              {depositHash && (
+                <a
+                  href={`https://celoscan.io/tx/${depositHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-300 hover:text-blue-200 underline mt-2 inline-block"
+                >
+                  View on CeloScan →
+                </a>
+              )}
             </div>
           </div>
         </DialogContent>
@@ -223,15 +345,45 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
               <span className="text-zinc-400">Total Cost</span>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold">{totalCost} CELO</span>
+                <span className="text-xl font-bold text-white">{totalCost} CELO</span>
               </div>
             </div>
+          </div>
+
+          <div className="p-3 bg-green-950/20 rounded-lg border border-green-800">
+            <p className="text-sm text-green-200">
+              ✅ <strong>This purchase will deposit {totalCost} CELO to the escrow</strong> - your money will generate yield and you can withdraw it anytime.
+            </p>
           </div>
 
           <div className="p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
             <p className="text-sm text-yellow-200">
               ⚠️ This item will be consumed immediately after purchase and cannot be refunded.
             </p>
+          </div>
+
+          <div className="p-4 bg-blue-950/20 rounded-lg border border-blue-800 space-y-2">
+            <p className="text-sm font-semibold text-blue-200 mb-2">📋 Transaction Preview</p>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between items-center bg-black/30 p-2 rounded">
+                <span className="text-blue-300">You will spend:</span>
+                <span className="font-bold text-white text-lg">{totalCost} CELO</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/30 p-2 rounded">
+                <span className="text-blue-300">Contract:</span>
+                <span className="font-mono text-blue-200 text-xs">{ZORRITO_YIELD_ESCROW_ADDRESS}</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/30 p-2 rounded">
+                <span className="text-blue-300">Function:</span>
+                <span className="text-blue-200">deposit({totalCost} CELO)</span>
+              </div>
+            </div>
+            <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-700 rounded">
+              <p className="text-xs text-yellow-200">
+                ⚠️ <strong>Important:</strong> The wallet will show the escrow contract address ({ZORRITO_YIELD_ESCROW_ADDRESS.slice(0, 8)}...{ZORRITO_YIELD_ESCROW_ADDRESS.slice(-6)}). 
+                The amount {totalCost} CELO is in the function parameters. This is safe - you're depositing to the escrow to generate yield.
+              </p>
+            </div>
           </div>
 
           {error && (
@@ -243,18 +395,48 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             </div>
           )}
 
+          {needsApproval && !isApprovalConfirmed && (
+            <div className="p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-yellow-400" />
+                <p className="text-sm text-yellow-200">
+                  You need to approve CELO token spending first.
+                </p>
+              </div>
+            </div>
+          )}
+
           {isTransactionPending && (
             <div className="p-3 bg-blue-950/20 rounded-lg border border-blue-800">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
                 <p className="text-sm text-blue-200">
-                  {isSending ? "Sending transaction..." : "Waiting for confirmation..."}
+                  {isApproving || isApprovalConfirming
+                    ? "Approving CELO token..."
+                    : isDepositing
+                    ? "Depositing to escrow..."
+                    : "Waiting for confirmation..."}
                 </p>
               </div>
-              {hash && (
+              {approveHash && (
                 <p className="text-xs text-blue-300 mt-2 break-all">
-                  TX: {hash.slice(0, 10)}...{hash.slice(-8)}
+                  Approval TX: {approveHash.slice(0, 10)}...{approveHash.slice(-8)}
                 </p>
+              )}
+              {depositHash && (
+                <div className="mt-2">
+                  <p className="text-xs text-blue-300 break-all">
+                    Deposit TX: {depositHash.slice(0, 10)}...{depositHash.slice(-8)}
+                  </p>
+                  <a
+                    href={`https://celoscan.io/tx/${depositHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:text-blue-300 underline mt-1 inline-block"
+                  >
+                    View on CeloScan →
+                  </a>
+                </div>
               )}
             </div>
           )}

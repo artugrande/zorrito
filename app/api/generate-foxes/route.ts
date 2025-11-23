@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { createGateway } from "@ai-sdk/gateway"
 import { Buffer } from "buffer"
 
 export const dynamic = "force-dynamic"
@@ -90,8 +91,13 @@ Generate a single, complete image. Do not include any text or labels.`
 
     console.log("[SERVER][v0] Generating customized fox with Gemini...")
 
+    // Create AI Gateway provider
+    const gateway = createGateway({
+      apiKey: apiKey,
+    })
+
     const result = await generateText({
-      model: "google/gemini-2.5-flash-image",
+      model: gateway("google/gemini-2.5-flash-image"),
       messages: [
         {
           role: "user",

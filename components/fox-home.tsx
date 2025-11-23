@@ -23,6 +23,8 @@ import {
   Wallet,
 } from "lucide-react"
 import { useAccount, useDisconnect } from "wagmi"
+import { useEscrowInfo } from "@/hooks/useZorritoEscrow"
+import { formatEther } from "viem"
 import { Input } from "@/components/ui/input"
 import { WinnersModal } from "@/components/winners-modal"
 import { RankingsModal } from "@/components/rankings-modal"
@@ -41,6 +43,19 @@ export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
   
   // Use wagmi address if available, otherwise fallback to prop
   const displayAddress = wagmiAddress || walletAddress
+  
+  // Get escrow information from contract
+  const { escrowInfo, isLoading: isLoadingEscrow } = useEscrowInfo(displayAddress as `0x${string}` | undefined)
+  
+  // Calculate user's chances (user principal / total principal * 100)
+  const userChances = escrowInfo.totalPrincipal > 0n 
+    ? (Number(escrowInfo.principal) / Number(escrowInfo.totalPrincipal)) * 100 
+    : 0
+  
+  // Next prize is 90% of available yield (90% goes to prizes)
+  const nextPrize = escrowInfo.availableYield > 0n
+    ? escrowInfo.availableYield * 90n / 100n
+    : 0n
 
   const [timeUntilMeal, setTimeUntilMeal] = useState({
     days: 0,
@@ -306,24 +321,53 @@ Start playing 👉 https://zorrito.vercel.app
                 <TrendingUp className="h-4 w-4 text-[#6FC341]" />
                 <h3 className="text-lg font-bold text-gray-900">Prize Information</h3>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-gray-600">Your Funds</p>
-                  <p className="text-lg font-bold text-gray-900">10.5 CELO</p>
+              {isLoadingEscrow ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-gray-600">Your Funds</p>
+                    <p className="text-lg font-bold text-gray-400">Loading...</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Your Chances</p>
+                    <p className="text-lg font-bold text-gray-400">Loading...</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Total Pool</p>
+                    <p className="text-lg font-bold text-gray-400">Loading...</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Next Prize</p>
+                    <p className="text-lg font-bold text-gray-400">Loading...</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-600">Your Chances</p>
-                  <p className="text-lg font-bold text-[#6FC341]">3.15%</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-gray-600">Your Funds</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {formatEther(escrowInfo.principal)} CELO
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Your Chances</p>
+                    <p className="text-lg font-bold text-[#6FC341]">
+                      {userChances.toFixed(2)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Total Pool</p>
+                    <p className="text-lg font-bold text-[#5BA7A4]">
+                      {formatEther(escrowInfo.totalPrincipal)} CELO
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Next Prize</p>
+                    <p className="text-lg font-bold text-[#F28C33]">
+                      {formatEther(nextPrize)} CELO
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-600">Total Pool</p>
-                  <p className="text-lg font-bold text-[#5BA7A4]">333.5 CELO</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Next Prize</p>
-                  <p className="text-lg font-bold text-[#F28C33]">333 CELO</p>
-                </div>
-              </div>
+              )}
             </Card>
           </div>
 
