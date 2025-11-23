@@ -128,35 +128,35 @@ export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
       id: "fish1",
       name: "1 Fish",
       icon: Fish,
-      basePrice: 0.001, // Minimum price in CELO
+      basePrice: 0.0010,
       duration: "Lasts 1 day",
     },
     {
       id: "fish7",
       name: "Box of 7 Fish",
       icon: Package,
-      basePrice: 0.001, // Minimum price in CELO
+      basePrice: 0.0070,
       duration: "Lasts 1 week",
     },
     {
       id: "fish15",
       name: "Box of 15 Fish",
       icon: Package,
-      basePrice: 0.001, // Minimum price in CELO
+      basePrice: 0.0150,
       duration: "Lasts 2 weeks",
     },
     {
       id: "golden",
       name: "Golden Fish",
       icon: Sparkles,
-      basePrice: 0.001, // Minimum price in CELO
+      basePrice: 0.2000,
       duration: "Boosts your chances of winning",
     },
     {
       id: "potion",
       name: "Revive Potion",
       icon: Flask,
-      basePrice: 0.001, // Minimum price in CELO
+      basePrice: 0.0020,
       duration: "Revives your fox if it dies",
     },
   ]
