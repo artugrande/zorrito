@@ -73,6 +73,46 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const totalCost = item ? (item.price * item.quantity).toFixed(18) : "0" // Full precision for CELO amounts
   const amountWei = item ? parseEther(totalCost) : 0n
 
+  // Define handleApprove first to avoid dependency issues
+  const handleApprove = useCallback(async () => {
+    if (chainId !== CELO_MAINNET_CHAIN_ID) {
+      // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
+      if (walletClient) {
+        try {
+          // Use walletClient's switchChain method
+          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+          // Wait a bit for chain to switch before continuing
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return
+        } catch (err: any) {
+          console.error("Chain switch error:", err)
+          setError("Please switch to Celo Mainnet manually in your wallet.")
+          return
+        }
+      } else {
+        setError("Please switch to Celo Mainnet manually in your wallet.")
+        return
+      }
+    }
+
+    setError(null)
+    setIsApproving(true)
+
+    try {
+      writeContractApprove({
+        address: CELO_TOKEN_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [ZORRITO_YIELD_ESCROW_ADDRESS, maxUint256],
+        chainId: CELO_MAINNET_CHAIN_ID, // Explicitly set chainId
+      })
+    } catch (err: any) {
+      console.error("Approval error:", err)
+      setError(err?.message || "Failed to approve CELO token")
+      setIsApproving(false)
+    }
+  }, [chainId, walletClient, writeContractApprove, CELO_MAINNET_CHAIN_ID])
+
   const handleDeposit = useCallback(async () => {
     if (!item) return
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
@@ -155,45 +195,6 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       }
     }
   }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, handleApprove])
-
-  const handleApprove = useCallback(async () => {
-    if (chainId !== CELO_MAINNET_CHAIN_ID) {
-      // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
-      if (walletClient) {
-        try {
-          // Use walletClient's switchChain method
-          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
-          // Wait a bit for chain to switch before continuing
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          return
-        } catch (err: any) {
-          console.error("Chain switch error:", err)
-          setError("Please switch to Celo Mainnet manually in your wallet.")
-          return
-        }
-      } else {
-        setError("Please switch to Celo Mainnet manually in your wallet.")
-        return
-      }
-    }
-
-    setError(null)
-    setIsApproving(true)
-
-    try {
-      writeContractApprove({
-        address: CELO_TOKEN_ADDRESS,
-        abi: ERC20_ABI,
-        functionName: 'approve',
-        args: [ZORRITO_YIELD_ESCROW_ADDRESS, maxUint256],
-        chainId: CELO_MAINNET_CHAIN_ID, // Explicitly set chainId
-      })
-    } catch (err: any) {
-      console.error("Approval error:", err)
-      setError(err?.message || "Failed to approve CELO token")
-      setIsApproving(false)
-    }
-  }, [chainId, walletClient, writeContractApprove, CELO_MAINNET_CHAIN_ID])
 
   // Check allowance when component mounts or address changes
   useEffect(() => {
