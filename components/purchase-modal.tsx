@@ -97,6 +97,26 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
 
     setError(null)
 
+    // Check balance before depositing
+    if (address && publicClient) {
+      try {
+        const balance = await publicClient.readContract({
+          address: CELO_TOKEN_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'balanceOf',
+          args: [address],
+        }) as bigint
+
+        if (balance < amountWei) {
+          setError(`Insufficient CELO balance. You need ${totalCost} CELO but only have ${(Number(balance) / 1e18).toFixed(6)} CELO.`)
+          return
+        }
+      } catch (err) {
+        console.error('Error checking balance:', err)
+        // Continue anyway, the transaction will fail if balance is insufficient
+      }
+    }
+
     try {
       // Always use manual call to avoid connector.getChainId() issues
       writeContractDeposit({
@@ -108,9 +128,17 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       })
     } catch (err: any) {
       console.error("Deposit error:", err)
-      setError(err?.message || "Failed to deposit CELO")
+      // Check if error is about insufficient funds or approval
+      if (err?.message?.toLowerCase().includes('insufficient') || err?.message?.toLowerCase().includes('balance')) {
+        setError(`Insufficient CELO balance. You need ${totalCost} CELO.`)
+      } else if (err?.message?.toLowerCase().includes('allowance') || err?.message?.toLowerCase().includes('approve')) {
+        setError("You need to approve CELO token spending first. Please try again.")
+        setNeedsApproval(true)
+      } else {
+        setError(err?.message || "Failed to deposit CELO. Please try again.")
+      }
     }
-  }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item])
+  }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost])
 
   const handleApprove = useCallback(async () => {
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
@@ -142,13 +170,14 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [ZORRITO_YIELD_ESCROW_ADDRESS, maxUint256],
+        chainId: CELO_MAINNET_CHAIN_ID, // Explicitly set chainId
       })
     } catch (err: any) {
       console.error("Approval error:", err)
       setError(err?.message || "Failed to approve CELO token")
       setIsApproving(false)
     }
-  }, [chainId, walletClient, writeContractApprove])
+  }, [chainId, walletClient, writeContractApprove, CELO_MAINNET_CHAIN_ID])
 
   // Check allowance when component mounts or address changes
   useEffect(() => {
@@ -223,9 +252,18 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   // Handle deposit errors
   useEffect(() => {
     if (depositError) {
-      setError(depositError.message || "Deposit failed. Please try again.")
+      const errorMessage = depositError.message || "Deposit failed. Please try again."
+      // Check if error is about insufficient funds or approval
+      if (errorMessage.toLowerCase().includes('insufficient') || errorMessage.toLowerCase().includes('balance')) {
+        setError(`Insufficient CELO balance. You need ${totalCost} CELO to complete this purchase.`)
+      } else if (errorMessage.toLowerCase().includes('allowance') || errorMessage.toLowerCase().includes('approve')) {
+        setError("You need to approve CELO token spending first. The approval transaction will be sent automatically.")
+        setNeedsApproval(true)
+      } else {
+        setError(errorMessage)
+      }
     }
-  }, [depositError])
+  }, [depositError, totalCost])
 
   // Handle approval errors
   useEffect(() => {
