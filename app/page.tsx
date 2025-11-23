@@ -1,14 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import dynamic from "next/dynamic"
-import { FarcasterReady } from "@/components/farcaster-ready"
-
-// Lazy load components to avoid initialization order issues
-const ConnectWallet = dynamic(() => import("@/components/connect-wallet").then(mod => ({ default: mod.ConnectWallet })), { ssr: false })
-const ToolsDisclaimer = dynamic(() => import("@/components/tools-disclaimer").then(mod => ({ default: mod.ToolsDisclaimer })), { ssr: false })
-const CreateFox = dynamic(() => import("@/components/create-fox").then(mod => ({ default: mod.CreateFox })), { ssr: false })
-const FoxHome = dynamic(() => import("@/components/fox-home").then(mod => ({ default: mod.FoxHome })), { ssr: false })
+import { ConnectWallet } from "@/components/connect-wallet"
+import { ToolsDisclaimer } from "@/components/tools-disclaimer"
+import { CreateFox } from "@/components/create-fox"
+import { FoxHome } from "@/components/fox-home"
 
 type Screen = "connect" | "disclaimer" | "create" | "home"
 
@@ -18,12 +14,11 @@ export default function Home() {
   const [foxData, setFoxData] = useState<any>(null)
 
   const handleWalletConnected = (address: string) => {
-    // Just advance to disclaimer, wallet will be connected there
+    setWalletAddress(address)
     setCurrentScreen("disclaimer")
   }
 
-  const handleDisclaimerAcknowledged = (address: string) => {
-    setWalletAddress(address)
+  const handleDisclaimerAcknowledged = () => {
     setCurrentScreen("create")
   }
 
@@ -48,7 +43,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black">
-      <FarcasterReady />
       {currentScreen === "connect" && <ConnectWallet onConnect={handleWalletConnected} />}
       {currentScreen === "disclaimer" && <ToolsDisclaimer onContinue={handleDisclaimerAcknowledged} />}
       {currentScreen === "create" && (

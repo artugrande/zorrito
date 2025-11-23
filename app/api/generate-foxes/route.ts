@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { createGateway } from "@ai-sdk/gateway"
 import { Buffer } from "buffer"
 
 export const dynamic = "force-dynamic"
@@ -91,13 +90,8 @@ Generate a single, complete image. Do not include any text or labels.`
 
     console.log("[SERVER][v0] Generating customized fox with Gemini...")
 
-    // Create AI Gateway provider
-    const gateway = createGateway({
-      apiKey: apiKey,
-    })
-
     const result = await generateText({
-      model: gateway("google/gemini-2.5-flash-image"),
+      model: "google/gemini-2.5-flash-image",
       messages: [
         {
           role: "user",
@@ -128,23 +122,9 @@ Generate a single, complete image. Do not include any text or labels.`
     }
 
     const generatedImage = imageFiles[0]
-    
-    // Ensure base64 is a string
-    const base64String = typeof generatedImage.base64 === 'string' 
-      ? generatedImage.base64 
-      : String(generatedImage.base64 || '')
-    
-    if (!base64String) {
-      console.log("[SERVER][v0] No base64 data in generated image")
-      return NextResponse.json<ErrorResponse>(
-        { error: "Invalid image data", details: "The generated image does not contain valid base64 data" },
-        { status: 500 },
-      )
-    }
-    
-    const generatedUrl = `data:${generatedImage.mediaType};base64,${base64String}`
+    const generatedUrl = `data:${generatedImage.mediaType};base64,${generatedImage.base64}`
 
-    console.log("[SERVER][v0] Fox generated successfully! Image size:", base64String.length, "chars")
+    console.log("[SERVER][v0] Fox generated successfully! Image size:", generatedImage.base64?.length || 0, "chars")
 
     return NextResponse.json<GenerateFoxesResponse>({
       image: generatedUrl,

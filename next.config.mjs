@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -17,11 +20,8 @@ const nextConfig = {
     ],
   },
   experimental: {
-    // Temporarily disable optimizePackageImports to fix initialization errors
-    // optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // Note: serverComponentsExternalPackages moved to top level in Next.js 16
-  // Keeping for compatibility but may show warning
 }
 
 export default nextConfig

@@ -10,11 +10,11 @@ interface WinnersModalProps {
 
 export function WinnersModal({ open, onOpenChange }: WinnersModalProps) {
   const winners = [
-    { wallet: "0x1234...5678", date: "2024-11-15", prize: "333 CELO", country: "🇦🇷" },
-    { wallet: "0x8765...4321", date: "2024-10-15", prize: "298 CELO", country: "🇨🇱" },
-    { wallet: "0x9876...1234", date: "2024-09-15", prize: "275 CELO", country: "🇺🇾" },
-    { wallet: "0x4567...8901", date: "2024-08-15", prize: "312 CELO", country: "🇧🇷" },
-    { wallet: "0x3456...7890", date: "2024-07-15", prize: "289 CELO", country: "🇦🇷" },
+    { wallet: "0x1234...5678", date: "2024-11-15", prize: "333 cUSD", country: "🇦🇷" },
+    { wallet: "0x8765...4321", date: "2024-10-15", prize: "298 cUSD", country: "🇨🇱" },
+    { wallet: "0x9876...1234", date: "2024-09-15", prize: "275 cUSD", country: "🇺🇾" },
+    { wallet: "0x4567...8901", date: "2024-08-15", prize: "312 cUSD", country: "🇧🇷" },
+    { wallet: "0x3456...7890", date: "2024-07-15", prize: "289 cUSD", country: "🇦🇷" },
   ]
 
   return (

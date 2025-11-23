@@ -4,7 +4,6 @@ import { Inter, JetBrains_Mono, Space_Grotesk, Baloo_2 } from "next/font/google"
 import { Suspense } from "react"
 import "./globals.css"
 import { MusicPlayer } from "@/components/music-player"
-import { Providers } from "@/components/providers"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -86,7 +85,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  manifest: "/farcaster.json",
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
@@ -111,16 +110,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <meta
-          name="fc:miniapp"
-          content='{"version":"1","imageUrl":"https://zorrito.vercel.app/splashimage.png","aspectRatio":"1:1","button":{"title":"Play Zorrito 🦊","action":{"type":"launch_frame","name":"zorrito","url":"https://zorrito.vercel.app/","splashImageUrl":"https://zorrito.vercel.app/splashimage.png","splashBackgroundColor":"#F5F0EC"}}}'
-        />
       </head>
       <body className="font-sans antialiased bg-[#D8731F] text-white">
-        <Providers>
-          <MusicPlayer />
-          <Suspense fallback={null}>{children}</Suspense>
-        </Providers>
+        <MusicPlayer />
+        <Suspense fallback={null}>{children}</Suspense>
       </body>
     </html>
   )

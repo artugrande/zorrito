@@ -20,11 +20,7 @@ import {
   Flag as Flask,
   Download,
   Share2,
-  Wallet,
 } from "lucide-react"
-import { useAccount, useDisconnect } from "wagmi"
-import { useEscrowInfo } from "@/hooks/useZorritoEscrow"
-import { formatEther } from "viem"
 import { Input } from "@/components/ui/input"
 import { WinnersModal } from "@/components/winners-modal"
 import { RankingsModal } from "@/components/rankings-modal"
@@ -38,25 +34,6 @@ interface FoxHomeProps {
 }
 
 export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
-  const { address: wagmiAddress } = useAccount()
-  const { disconnect } = useDisconnect()
-  
-  // Use wagmi address if available, otherwise fallback to prop
-  const displayAddress = wagmiAddress || walletAddress
-  
-  // Get escrow information from contract
-  const { escrowInfo, isLoading: isLoadingEscrow } = useEscrowInfo(displayAddress as `0x${string}` | undefined)
-  
-  // Calculate user's chances (user principal / total principal * 100)
-  const userChances = escrowInfo.totalPrincipal > 0n 
-    ? (Number(escrowInfo.principal) / Number(escrowInfo.totalPrincipal)) * 100 
-    : 0
-  
-  // Next prize is 90% of available yield (90% goes to prizes)
-  const nextPrize = escrowInfo.availableYield > 0n
-    ? escrowInfo.availableYield * 90n / 100n
-    : 0n
-
   const [timeUntilMeal, setTimeUntilMeal] = useState({
     days: 0,
     hours: 3,
@@ -143,35 +120,35 @@ export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
       id: "fish1",
       name: "1 Fish",
       icon: Fish,
-      basePrice: 0.0010,
+      basePrice: 0.5,
       duration: "Lasts 1 day",
     },
     {
       id: "fish7",
       name: "Box of 7 Fish",
       icon: Package,
-      basePrice: 0.0070,
+      basePrice: 3.5,
       duration: "Lasts 1 week",
     },
     {
       id: "fish15",
       name: "Box of 15 Fish",
       icon: Package,
-      basePrice: 0.0150,
+      basePrice: 7.5,
       duration: "Lasts 2 weeks",
     },
     {
       id: "golden",
       name: "Golden Fish",
       icon: Sparkles,
-      basePrice: 0.2000,
+      basePrice: 100,
       duration: "Boosts your chances of winning",
     },
     {
       id: "potion",
       name: "Revive Potion",
       icon: Flask,
-      basePrice: 0.0020,
+      basePrice: 1,
       duration: "Revives your fox if it dies",
     },
   ]
@@ -197,7 +174,7 @@ export function FoxHome({ walletAddress, foxData, onLogout }: FoxHomeProps) {
   const shareOnX = () => {
     const text = `🦊🔥 Day ${streak} keeping my fox alive!
 
-I'm saving every day with a no-loss lottery: deposit CELO, grow your savings with yield, win prizes 💰 and support Patagonia's wildlife 🌱
+I'm saving every day with a no-loss lottery: deposit cUSD, grow your savings with yield, win prizes 💰 and support Patagonia's wildlife 🌱
 
 Start playing 👉 https://zorrito.vercel.app
 
@@ -247,19 +224,9 @@ Start playing 👉 https://zorrito.vercel.app
                     {status}
                   </Badge>
                 </div>
-                <div className="text-right flex flex-col items-end gap-2">
-                  <div>
-                    <p className="text-2xl font-bold text-[#F28C33]">Keep your</p>
-                    <p className="text-2xl font-bold text-[#F28C33]">fox alive!</p>
-                  </div>
-                  {displayAddress && displayAddress !== "0x0000000000000000000000000000000000000000" && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F28C33]/10 border border-[#F28C33] rounded-full">
-                      <Wallet className="h-3.5 w-3.5 text-[#F28C33]" />
-                      <span className="text-xs font-semibold text-[#F28C33]">
-                        {displayAddress.slice(0, 6)}...{displayAddress.slice(-4)}
-                      </span>
-                    </div>
-                  )}
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-[#F28C33]">Keep your</p>
+                  <p className="text-2xl font-bold text-[#F28C33]">fox alive!</p>
                 </div>
               </div>
             </Card>
@@ -321,53 +288,24 @@ Start playing 👉 https://zorrito.vercel.app
                 <TrendingUp className="h-4 w-4 text-[#6FC341]" />
                 <h3 className="text-lg font-bold text-gray-900">Prize Information</h3>
               </div>
-              {isLoadingEscrow ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-gray-600">Your Funds</p>
-                    <p className="text-lg font-bold text-gray-400">Loading...</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Your Chances</p>
-                    <p className="text-lg font-bold text-gray-400">Loading...</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Total Pool</p>
-                    <p className="text-lg font-bold text-gray-400">Loading...</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Next Prize</p>
-                    <p className="text-lg font-bold text-gray-400">Loading...</p>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-600">Your Funds</p>
+                  <p className="text-lg font-bold text-gray-900">10.5 cUSD</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-gray-600">Your Funds</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {formatEther(escrowInfo.principal)} CELO
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Your Chances</p>
-                    <p className="text-lg font-bold text-[#6FC341]">
-                      {userChances.toFixed(2)}%
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Total Pool</p>
-                    <p className="text-lg font-bold text-[#5BA7A4]">
-                      {formatEther(escrowInfo.totalPrincipal)} CELO
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Next Prize</p>
-                    <p className="text-lg font-bold text-[#F28C33]">
-                      {formatEther(nextPrize)} CELO
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-xs text-gray-600">Your Chances</p>
+                  <p className="text-lg font-bold text-[#6FC341]">3.15%</p>
                 </div>
-              )}
+                <div>
+                  <p className="text-xs text-gray-600">Total Pool</p>
+                  <p className="text-lg font-bold text-[#5BA7A4]">333.5 cUSD</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Next Prize</p>
+                  <p className="text-lg font-bold text-[#F28C33]">333 cUSD</p>
+                </div>
+              </div>
             </Card>
           </div>
 
@@ -400,14 +338,7 @@ Start playing 👉 https://zorrito.vercel.app
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {feedingOptions.map((option) => {
               const quantity = quantities[option.id as keyof typeof quantities]
-              // Format price to show at least 3 decimal places for small amounts
-              const formatPrice = (price: number) => {
-                if (price >= 1) return price.toFixed(2)
-                if (price >= 0.1) return price.toFixed(3)
-                return price.toFixed(4) // For 0.001, show 4 decimals
-              }
-              const totalPrice = formatPrice(option.basePrice * quantity)
-              const displayPrice = formatPrice(option.basePrice)
+              const totalPrice = (option.basePrice * quantity).toFixed(2)
               const Icon = option.icon
               const isPotion = option.id === "potion"
               return (
@@ -455,7 +386,7 @@ Start playing 👉 https://zorrito.vercel.app
                     )}
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm whitespace-nowrap text-gray-900">
-                        {isPotion ? displayPrice : totalPrice} CELO
+                        {isPotion ? option.basePrice : totalPrice} cUSD
                       </span>
                       <Button
                         size="sm"
@@ -592,12 +523,7 @@ Start playing 👉 https://zorrito.vercel.app
             Withdraw Funds
           </Button>
           <Button
-            onClick={() => {
-              disconnect()
-              if (onLogout) {
-                onLogout()
-              }
-            }}
+            onClick={onLogout}
             variant="outline"
             className="h-12 border-[#E8913F] bg-white/95 backdrop-blur-sm text-gray-700 hover:bg-gray-100"
           >

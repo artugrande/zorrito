@@ -1,15 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ChevronRight, Loader2, Wallet } from "lucide-react"
-import { useConnect, useAccount, useWalletClient, useChainId } from "wagmi"
-import { CELO_MAINNET_CHAIN_ID } from "@/lib/contracts/constants"
+import { ChevronRight } from "lucide-react"
 
 interface ToolsDisclaimerProps {
-  onContinue: (address: string) => void
+  onContinue: () => void
 }
 
 const tools = [
@@ -44,87 +42,6 @@ const tools = [
 
 export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
   const [acknowledged, setAcknowledged] = useState(false)
-  const [connectionError, setConnectionError] = useState<string | null>(null)
-  
-  // Use wagmi with Farcaster connector (automatically connects if wallet already connected)
-  const { connect, connectors, isPending } = useConnect()
-  const { address, isConnected } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const chainId = useChainId()
-
-  // Force switch to Celo Mainnet after connection
-  useEffect(() => {
-    const switchToCelo = async () => {
-      if (isConnected && address && walletClient && chainId !== CELO_MAINNET_CHAIN_ID) {
-        try {
-          console.log("Switching to Celo Mainnet...")
-          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
-          console.log("Switched to Celo Mainnet successfully")
-          // Wait a bit for the chain to update
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        } catch (err: any) {
-          console.error("Error switching to Celo Mainnet:", err)
-          setConnectionError("Please switch to Celo Mainnet manually in your wallet.")
-        }
-      }
-    }
-
-    switchToCelo()
-  }, [isConnected, address, walletClient, chainId])
-
-  // Only continue when wallet is actually connected and on Celo Mainnet
-  useEffect(() => {
-    if (isConnected && address && chainId === CELO_MAINNET_CHAIN_ID) {
-      setConnectionError(null)
-      onContinue(address)
-    }
-  }, [isConnected, address, chainId, onContinue])
-
-  const handleContinue = async () => {
-    if (!acknowledged) return
-    if (isPending) return // Prevent double clicks
-
-    setConnectionError(null)
-
-    // Farcaster connector is first in the list, so it will be used automatically
-    // If user already has a connected wallet, isConnected will be true automatically
-    // Otherwise, we need to connect
-    if (isConnected) {
-      // Already connected, useEffect will handle calling onContinue
-      return
-    }
-
-    // Find the Farcaster connector first, then fallback to others
-    const farcasterConnector = connectors.find((c) => c.id === "farcasterMiniApp" || c.name?.toLowerCase().includes("farcaster"))
-    const connectorToUse = farcasterConnector || connectors[0]
-    
-    if (!connectorToUse) {
-      setConnectionError("Wallet connector not found. Please refresh the page.")
-      return
-    }
-
-    // Set a timeout to prevent hanging
-    let timeoutId: NodeJS.Timeout | null = null
-    
-    try {
-      timeoutId = setTimeout(() => {
-        if (!isConnected) {
-          setConnectionError("Connection timeout. Please try again.")
-        }
-      }, 30000) // 30 second timeout
-
-      await connect({ connector: connectorToUse })
-      
-      // Clear timeout if connection succeeds
-      if (timeoutId) clearTimeout(timeoutId)
-      
-      // The useEffect will handle calling onContinue when connected
-    } catch (error: any) {
-      console.error("Failed to connect wallet:", error)
-      if (timeoutId) clearTimeout(timeoutId)
-      setConnectionError(error?.message || "Failed to connect wallet. Please try again.")
-    }
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 page-background">
@@ -192,51 +109,14 @@ export function ToolsDisclaimer({ onContinue }: ToolsDisclaimerProps) {
             </label>
           </div>
 
-          {/* Connection Error */}
-          {connectionError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{connectionError}</p>
-            </div>
-          )}
-
-          {/* Loading State */}
-          {isPending && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-                <div>
-                  <p className="text-sm font-semibold text-blue-900">Connecting Wallet...</p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Please approve the connection in your wallet
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Continue Button */}
           <Button
-            onClick={handleContinue}
-            disabled={!acknowledged || isPending || isConnected}
+            onClick={onContinue}
+            disabled={!acknowledged}
             className="w-full h-12 text-lg font-semibold bg-[#000000] text-white hover:bg-[#222222] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Connecting...
-              </>
-            ) : isConnected ? (
-              <>
-                <Wallet className="mr-2 h-5 w-5" />
-                Connected
-              </>
-            ) : (
-              <>
-                <Wallet className="mr-2 h-5 w-5" />
-                Connect Wallet & Continue
-              </>
-            )}
-            {!isPending && !isConnected && <ChevronRight className="ml-2 h-5 w-5" />}
+            Continue
+            <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </Card>
