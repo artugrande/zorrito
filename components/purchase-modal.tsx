@@ -97,9 +97,10 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
 
     setError(null)
 
-    // Check balance before depositing
+    // Check balance and allowance before depositing
     if (address && publicClient) {
       try {
+        // Check balance
         const balance = await publicClient.readContract({
           address: CELO_TOKEN_ADDRESS,
           abi: ERC20_ABI,
@@ -111,9 +112,24 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
           setError(`Insufficient CELO balance. You need ${totalCost} CELO but only have ${(Number(balance) / 1e18).toFixed(6)} CELO.`)
           return
         }
+
+        // Check allowance
+        const allowance = await publicClient.readContract({
+          address: CELO_TOKEN_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'allowance',
+          args: [address, ZORRITO_YIELD_ESCROW_ADDRESS],
+        }) as bigint
+
+        if (allowance < amountWei) {
+          setError("You need to approve CELO token spending first. The approval will be requested automatically.")
+          setNeedsApproval(true)
+          handleApprove()
+          return
+        }
       } catch (err) {
-        console.error('Error checking balance:', err)
-        // Continue anyway, the transaction will fail if balance is insufficient
+        console.error('Error checking balance/allowance:', err)
+        // Continue anyway, the transaction will fail if there's an issue
       }
     }
 
@@ -138,7 +154,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         setError(err?.message || "Failed to deposit CELO. Please try again.")
       }
     }
-  }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost])
+  }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, handleApprove])
 
   const handleApprove = useCallback(async () => {
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
@@ -315,15 +331,34 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       }
     }
 
-    // If approval is needed, approve first
-    if (needsApproval && !isApprovalConfirmed) {
-      handleApprove()
-      return
+    // Always check allowance before proceeding
+    if (address && publicClient && item) {
+      try {
+        const allowance = await publicClient.readContract({
+          address: CELO_TOKEN_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'allowance',
+          args: [address, ZORRITO_YIELD_ESCROW_ADDRESS],
+        }) as bigint
+
+        const amountWei = parseEther((item.price * item.quantity).toFixed(18))
+        
+        // If approval is needed, approve first
+        if (allowance < amountWei) {
+          console.log("Approval needed, initiating approval...")
+          setNeedsApproval(true)
+          handleApprove()
+          return
+        }
+      } catch (err) {
+        console.error('Error checking allowance:', err)
+        // Continue anyway, will fail if approval is needed
+      }
     }
 
     // Otherwise, deposit directly
     handleDeposit()
-  }, [chainId, walletClient, needsApproval, isApprovalConfirmed, handleApprove, handleDeposit])
+  }, [chainId, walletClient, address, publicClient, item, handleApprove, handleDeposit])
 
   const handleClose = () => {
     // Only allow closing if transaction is not in progress
