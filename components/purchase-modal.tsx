@@ -30,7 +30,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   // Don't use useSwitchChain to avoid connector.getChainId() issues with Farcaster
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const CELO_MAINNET_CHAIN_ID = 42220
   
   // Use wagmi's useSendTransaction to ensure proper chain handling
@@ -101,11 +101,6 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       }
     }
 
-    if (!walletClient) {
-      setError("Wallet not connected. Please connect your wallet and try again.")
-      return
-    }
-
     if (!address) {
       setError("Wallet address not available. Please reconnect your wallet.")
       return
@@ -115,30 +110,42 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     setDepositError(null)
 
     // Send native CELO directly to the contract using wagmi's sendTransaction
+    // useSendTransaction handles walletClient internally, so we don't need to check it
     // This ensures proper chain recognition (CELO instead of ETH)
-    sendTransaction({
-      to: ZORRITO_YIELD_ESCROW_ADDRESS,
-      value: amountWei,
-    }, {
-      onSuccess: (hash) => {
-        setDepositHash(hash)
-        setIsDepositing(false)
-      },
-      onError: (err) => {
-        console.error("Send transaction error:", err)
-        setDepositError(err as Error)
-        setIsDepositing(false)
-        
-        const errorMessage = err?.message || err?.toString() || "Unknown error"
-        const errorLower = errorMessage.toLowerCase()
-        
-        if (errorLower.includes('insufficient') || errorLower.includes('balance') || errorLower.includes("don't have enough funds")) {
-          setError(`Insufficient CELO balance. You need ${totalCost} CELO.`)
-        } else {
-          setError(errorMessage)
+    try {
+      sendTransaction({
+        to: ZORRITO_YIELD_ESCROW_ADDRESS,
+        value: amountWei,
+      }, {
+        onSuccess: (hash) => {
+          setDepositHash(hash)
+          setIsDepositing(false)
+        },
+        onError: (err) => {
+          console.error("Send transaction error:", err)
+          setDepositError(err as Error)
+          setIsDepositing(false)
+          
+          const errorMessage = err?.message || err?.toString() || "Unknown error"
+          const errorLower = errorMessage.toLowerCase()
+          
+          if (errorLower.includes('insufficient') || errorLower.includes('balance') || errorLower.includes("don't have enough funds")) {
+            setError(`Insufficient CELO balance. You need ${totalCost} CELO.`)
+          } else if (errorLower.includes('user rejected') || errorLower.includes('user denied')) {
+            setError("Transaction was rejected. Please try again.")
+          } else if (errorLower.includes('wallet') || errorLower.includes('client')) {
+            setError("Wallet connection issue. Please refresh the page and try again.")
+          } else {
+            setError(errorMessage)
+          }
         }
-      }
-    })
+      })
+    } catch (err: any) {
+      console.error("Error calling sendTransaction:", err)
+      setDepositError(err as Error)
+      setIsDepositing(false)
+      setError(err?.message || "Failed to initiate transaction. Please try again.")
+    }
   }, [chainId, walletClient, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, sendTransaction])
 
   // Reset deposit state when deposit is confirmed
@@ -213,35 +220,35 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     setError(null)
     
     // Check if wallet is connected
-    if (!address) {
+    if (!isConnected || !address) {
       setError("Wallet not connected. Please connect your wallet first.")
       return
     }
 
-    if (!walletClient) {
-      setError("Wallet client not available. Please try again or refresh the page.")
-      return
-    }
-    
     // Always ensure we're on Celo Mainnet
     if (chainId !== CELO_MAINNET_CHAIN_ID) {
-      // Try to switch chain using walletClient directly to avoid connector.getChainId() issues
-      try {
-        // Use walletClient's switchChain method
-        await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
-        // Wait a bit for chain to switch before continuing
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        return
-      } catch (err: any) {
-        console.error("Chain switch error:", err)
+      // Try to switch chain using walletClient if available
+      if (walletClient) {
+        try {
+          await walletClient.switchChain({ id: CELO_MAINNET_CHAIN_ID })
+          // Wait a bit for chain to switch before continuing
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          return
+        } catch (err: any) {
+          console.error("Chain switch error:", err)
+          setError("Please switch to Celo Mainnet manually in your wallet.")
+          return
+        }
+      } else {
         setError("Please switch to Celo Mainnet manually in your wallet.")
         return
       }
     }
 
     // Deposit native CELO directly
+    // useSendTransaction will handle walletClient internally
     handleDeposit()
-  }, [chainId, walletClient, address, publicClient, item, handleDeposit])
+  }, [chainId, walletClient, isConnected, address, publicClient, item, handleDeposit])
 
   const handleClose = () => {
     // Only allow closing if transaction is not in progress
