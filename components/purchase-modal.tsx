@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
-import { useWriteContract, useWaitForTransactionReceipt, useChainId, usePublicClient, useWalletClient, useAccount } from "wagmi"
+import { useWaitForTransactionReceipt, useChainId, usePublicClient, useWalletClient, useAccount } from "wagmi"
 import { parseEther, maxUint256 } from "viem"
 import { ZORRITO_YIELD_ESCROW_ADDRESS, CELO_TOKEN_ADDRESS } from "@/lib/contracts/constants"
 import { ZORRITO_YIELD_ESCROW_ABI, ERC20_ABI } from "@/lib/contracts/abis"
@@ -25,7 +25,6 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const [error, setError] = useState<string | null>(null)
   const [needsApproval, setNeedsApproval] = useState(false)
   const [isApproving, setIsApproving] = useState(false)
-  const [approveHash, setApproveHash] = useState<`0x${string}` | null>(null)
 
   // All hooks must be called before any conditional returns
   const chainId = useChainId()
@@ -35,27 +34,19 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const { address } = useAccount()
   const CELO_MAINNET_CHAIN_ID = 42220
 
-  // Write contract hooks
-  // Don't use usePrepareContractWrite to avoid connector.getChainId() issues with Farcaster
-  const {
-    writeContract: writeContractDeposit,
-    data: depositHash,
-    isPending: isDepositing,
-    error: depositError,
-  } = useWriteContract()
-
-  const {
-    writeContract: writeContractApprove,
-    data: approveTxHash,
-    isPending: isApprovingTx,
-    error: approveError,
-  } = useWriteContract()
+  // Use direct walletClient calls instead of useWriteContract to avoid connector.getChainId() issues
+  const [depositHash, setDepositHash] = useState<`0x${string}` | null>(null)
+  const [approveHash, setApproveHash] = useState<`0x${string}` | null>(null)
+  const [isDepositing, setIsDepositing] = useState(false)
+  const [isApprovingTx, setIsApprovingTx] = useState(false)
+  const [depositError, setDepositError] = useState<Error | null>(null)
+  const [approveError, setApproveError] = useState<Error | null>(null)
 
   // Wait for approval transaction
   const { isLoading: isApprovalConfirming, isSuccess: isApprovalConfirmed } = useWaitForTransactionReceipt({
-    hash: approveHash || approveTxHash || undefined,
+    hash: approveHash || undefined,
     query: {
-      enabled: !!(approveHash || approveTxHash),
+      enabled: !!approveHash,
       retry: 3,
     },
   })
@@ -97,21 +88,33 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
 
     setError(null)
     setIsApproving(true)
+    setIsApprovingTx(true)
+    setApproveError(null)
+
+    if (!walletClient) {
+      setError("Wallet not connected")
+      setIsApproving(false)
+      setIsApprovingTx(false)
+      return
+    }
 
     try {
-      writeContractApprove({
+      const hash = await walletClient.writeContract({
         address: CELO_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [ZORRITO_YIELD_ESCROW_ADDRESS, maxUint256],
-        chainId: CELO_MAINNET_CHAIN_ID, // Explicitly set chainId
+        chain: { id: CELO_MAINNET_CHAIN_ID },
       })
+      setApproveHash(hash)
     } catch (err: any) {
       console.error("Approval error:", err)
+      setApproveError(err)
       setError(err?.message || "Failed to approve CELO token")
       setIsApproving(false)
+      setIsApprovingTx(false)
     }
-  }, [chainId, walletClient, writeContractApprove, CELO_MAINNET_CHAIN_ID])
+  }, [chainId, walletClient, CELO_MAINNET_CHAIN_ID])
 
   const handleDeposit = useCallback(async () => {
     if (!item) return
@@ -173,17 +176,27 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       }
     }
 
+    if (!walletClient) {
+      setError("Wallet not connected")
+      return
+    }
+
+    setIsDepositing(true)
+    setDepositError(null)
+
     try {
-      // Always use manual call to avoid connector.getChainId() issues
-      writeContractDeposit({
+      const hash = await walletClient.writeContract({
         address: ZORRITO_YIELD_ESCROW_ADDRESS,
         abi: ZORRITO_YIELD_ESCROW_ABI,
         functionName: 'deposit',
         args: [amountWei],
-        chainId: CELO_MAINNET_CHAIN_ID, // Explicitly set chainId to avoid connector issues
+        chain: { id: CELO_MAINNET_CHAIN_ID },
       })
+      setDepositHash(hash)
     } catch (err: any) {
       console.error("Deposit error:", err)
+      setDepositError(err)
+      setIsDepositing(false)
       // Check if error is about insufficient funds or approval
       if (err?.message?.toLowerCase().includes('insufficient') || err?.message?.toLowerCase().includes('balance')) {
         setError(`Insufficient CELO balance. You need ${totalCost} CELO.`)
@@ -194,7 +207,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         setError(err?.message || "Failed to deposit CELO. Please try again.")
       }
     }
-  }, [chainId, walletClient, writeContractDeposit, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, handleApprove])
+  }, [chainId, walletClient, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, handleApprove])
 
   // Check allowance when component mounts or address changes
   useEffect(() => {
@@ -221,12 +234,20 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     }
   }, [address, publicClient, item, chainId])
 
-  // Update approve hash when approval transaction is sent
+  // Reset deposit state when deposit is confirmed
   useEffect(() => {
-    if (approveTxHash) {
-      setApproveHash(approveTxHash)
+    if (isConfirmed && depositHash) {
+      setIsDepositing(false)
     }
-  }, [approveTxHash])
+  }, [isConfirmed, depositHash])
+
+  // Reset approval state when approval is confirmed
+  useEffect(() => {
+    if (isApprovalConfirmed && approveHash) {
+      setIsApproving(false)
+      setIsApprovingTx(false)
+    }
+  }, [isApprovalConfirmed, approveHash])
 
   // Auto-deposit after approval is confirmed
   useEffect(() => {
@@ -287,6 +308,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     if (approveError) {
       setError(approveError.message || "Approval failed. Please try again.")
       setIsApproving(false)
+      setIsApprovingTx(false)
     }
   }, [approveError])
 
@@ -304,7 +326,12 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
       setError(null)
       setNeedsApproval(false)
       setIsApproving(false)
+      setIsApprovingTx(false)
+      setIsDepositing(false)
       setApproveHash(null)
+      setDepositHash(null)
+      setDepositError(null)
+      setApproveError(null)
     }
   }, [open])
 
