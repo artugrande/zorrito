@@ -1,9 +1,9 @@
 /**
  * Contract ABIs
  * 
- * Real ABIs from deployed contracts on Celo Mainnet
- * - ZorritoFoxNFT: 0x1E8f9f16eB19c980375B39D70fc198F507618A60
- * - ZorritoYieldEscrow: 0x5e27e1fFC65BFEDdAe79B3CA89Fa09E617F2F853
+ * Real ABIs from deployed contracts on Celo Mainnet (V2)
+ * - ZorritoFoxNFT: 0x5dAD0f11e8CFf1069c0343F86A41EDeb3AF511b0
+ * - ZorritoYieldEscrow: 0x69ba0851c4b8Ed0ee8e752fdDca36c4Bf85Af17F (V2 - with receive() for native CELO)
  */
 
 // ZorritoFoxNFT ABI - Complete ABI from deployed contract

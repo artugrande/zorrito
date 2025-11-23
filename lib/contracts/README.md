@@ -4,15 +4,16 @@ This directory contains the integration code for the Zorrito smart contracts dep
 
 ## Contracts
 
-### 1. ZorritoFoxNFT (ERC721)
-- **Address**: `0x1E8f9f16eB19c980375B39D70fc198F507618A60`
-- **Explorer**: https://celoscan.io/address/0x1E8f9f16eB19c980375B39D70fc198F507618A60
+### 1. ZorritoFoxNFT (ERC721) - V2
+- **Address**: `0x5dAD0f11e8CFf1069c0343F86A41EDeb3AF511b0`
+- **Explorer**: https://celoscan.io/address/0x5dAD0f11e8CFf1069c0343F86A41EDeb3AF511b0
 - **Functionality**: Dynamic NFT for foxes with on-chain stats (lastFeed, streak, foodCredits)
 
-### 2. ZorritoYieldEscrow
-- **Address**: `0x5e27e1fFC65BFEDdAe79B3CA89Fa09E617F2F853`
-- **Explorer**: https://celoscan.io/address/0x5e27e1fFC65BFEDdAe79B3CA89Fa09E617F2F853
+### 2. ZorritoYieldEscrow - V2 (with receive() for native CELO)
+- **Address**: `0x69ba0851c4b8Ed0ee8e752fdDca36c4Bf85Af17F`
+- **Explorer**: https://celoscan.io/address/0x69ba0851c4b8Ed0ee8e752fdDca36c4Bf85Af17F
 - **Functionality**: No-loss escrow that distributes Aave v3 yield to owners of alive foxes
+- **New Feature**: Accepts native CELO directly via `receive()` function (no need for ERC20 approval)
 
 ## Setup
 
@@ -20,12 +21,12 @@ This directory contains the integration code for the Zorrito smart contracts dep
 
 The ABIs in `abis.ts` are placeholders. You need to replace them with the actual ABIs from the verified contracts:
 
-1. Go to https://celoscan.io/address/0x1E8f9f16eB19c980375B39D70fc198F507618A60#code
+1. Go to https://celoscan.io/address/0x5dAD0f11e8CFf1069c0343F86A41EDeb3AF511b0#code
 2. Copy the complete ABI from the "Contract" tab
 3. Replace `ZORRITO_FOX_NFT_ABI` in `abis.ts`
 
 Repeat for the YieldEscrow contract:
-1. Go to https://celoscan.io/address/0x5e27e1fFC65BFEDdAe79B3CA89Fa09E617F2F853#code
+1. Go to https://celoscan.io/address/0x69ba0851c4b8Ed0ee8e752fdDca36c4Bf85Af17F#code
 2. Copy the complete ABI
 3. Replace `ZORRITO_YIELD_ESCROW_ABI` in `abis.ts`
 
@@ -119,7 +120,8 @@ function MyComponent() {
 
 ### ZorritoYieldEscrow
 
-- `deposit(amount)` - Deposit CELO (requires approval first)
+- `receive()` - Accept native CELO directly (V2 feature - no approval needed)
+- `deposit(amount)` - Deposit CELO ERC20 (requires approval first)
 - `withdraw(amount)` - Withdraw principal (only principal owner)
 - `getAliveFoxes(user)` - Get alive foxes for user (view function)
 - `getAvailableYield()` - Get available yield for distribution (view)

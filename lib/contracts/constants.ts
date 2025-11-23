@@ -5,9 +5,9 @@
 // Celo Mainnet Chain ID
 export const CELO_MAINNET_CHAIN_ID = 42220
 
-// Contract addresses
-export const ZORRITO_FOX_NFT_ADDRESS = '0x1E8f9f16eB19c980375B39D70fc198F507618A60' as const
-export const ZORRITO_YIELD_ESCROW_ADDRESS = '0x5e27e1fFC65BFEDdAe79B3CA89Fa09E617F2F853' as const
+// Contract addresses (V2 - with receive() for native CELO)
+export const ZORRITO_FOX_NFT_ADDRESS = '0x5dAD0f11e8CFf1069c0343F86A41EDeb3AF511b0' as const
+export const ZORRITO_YIELD_ESCROW_ADDRESS = '0x69ba0851c4b8Ed0ee8e752fdDca36c4Bf85Af17F' as const
 
 // Token addresses
 export const CELO_TOKEN_ADDRESS = '0x471EcE3750Da237f93B8E339C536989b8978a438' as const

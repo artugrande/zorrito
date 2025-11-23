@@ -134,12 +134,10 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     setDepositError(null)
 
     // Send native CELO directly to the contract
-    // IMPORTANTE: El contrato necesita tener receive() o fallback() para aceptar CELO nativo
-    // Si el contrato no tiene estas funciones, la transacción fallará
-    // El contrato actual tiene deposit() como nonpayable, así que necesitarás modificar el contrato
+    // El contrato V2 tiene receive() que acepta CELO nativo y lo convierte automáticamente a CELO ERC20
     sendTransaction({
       to: ZORRITO_YIELD_ESCROW_ADDRESS,
-      value: amountWei, // Envía CELO nativo directamente
+      value: amountWei, // Envía CELO nativo directamente - el contrato lo maneja automáticamente
     })
   }, [chainId, walletClient, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, sendTransaction])
 
