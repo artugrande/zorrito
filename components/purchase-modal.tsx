@@ -4,10 +4,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
-import { useWaitForTransactionReceipt, useChainId, usePublicClient, useWalletClient, useAccount, useWriteContract } from "wagmi"
+import { useWaitForTransactionReceipt, useChainId, usePublicClient, useWalletClient, useAccount, useSendTransaction } from "wagmi"
 import { parseEther } from "viem"
 import { ZORRITO_YIELD_ESCROW_ADDRESS, CELO_MAINNET_CHAIN_ID } from "@/lib/contracts/constants"
-import { ZORRITO_YIELD_ESCROW_ABI } from "@/lib/contracts/abis"
 
 interface PurchaseModalProps {
   open: boolean
@@ -34,30 +33,31 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const { address, isConnected } = useAccount()
   const CELO_MAINNET_CHAIN_ID = 42220
   
-  // Use wagmi's useWriteContract to call deposit function (nonpayable, no value needed)
-  const { writeContract, isPending: isWriting, data: writeHash, error: writeError } = useWriteContract()
+  // Use wagmi's useSendTransaction to send native CELO directly to contract
+  // The contract needs to have receive() or fallback() to accept native CELO
+  const { sendTransaction, isPending: isSending, data: sendHash, error: sendError } = useSendTransaction()
 
   // Use direct walletClient calls instead of useWriteContract to avoid connector.getChainId() issues
   const [depositHash, setDepositHash] = useState<`0x${string}` | null>(null)
   const [isDepositing, setIsDepositing] = useState(false)
   const [depositError, setDepositError] = useState<Error | null>(null)
 
-  // Update depositHash when writeHash changes (success)
+  // Update depositHash when sendHash changes (success)
   useEffect(() => {
-    if (writeHash) {
-      setDepositHash(writeHash)
+    if (sendHash) {
+      setDepositHash(sendHash)
       setIsDepositing(false)
     }
-  }, [writeHash])
+  }, [sendHash])
 
-  // Handle writeContract errors
+  // Handle sendTransaction errors
   useEffect(() => {
-    if (writeError) {
-      console.error("WriteContract error:", writeError)
-      setDepositError(writeError as Error)
+    if (sendError) {
+      console.error("SendTransaction error:", sendError)
+      setDepositError(sendError as Error)
       setIsDepositing(false)
       
-      const errorMessage = writeError?.message || writeError?.toString() || "Unknown error"
+      const errorMessage = sendError?.message || sendError?.toString() || "Unknown error"
       const errorLower = errorMessage.toLowerCase()
       
       if (errorLower.includes('insufficient') || errorLower.includes('balance') || errorLower.includes("don't have enough funds")) {
@@ -70,13 +70,13 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         setError(errorMessage)
       }
     }
-  }, [writeError, totalCost])
+  }, [sendError, totalCost])
 
   // Wait for deposit transaction
   const { isLoading: isConfirming, isSuccess: isConfirmed, error: receiptError } = useWaitForTransactionReceipt({
-    hash: depositHash || writeHash || undefined,
+    hash: depositHash || sendHash || undefined,
     query: {
-      enabled: !!(depositHash || writeHash),
+      enabled: !!(depositHash || sendHash),
       retry: 3,
     },
   })
@@ -133,18 +133,15 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     setIsDepositing(true)
     setDepositError(null)
 
-    // Call deposit function using writeContract (nonpayable, no value parameter)
-    // This calls deposit(uint256 amount) - the contract expects CELO ERC20 token, not native CELO
-    // NO value parameter = wallet won't show "ETH" or "CELO" as native currency transfer
-    // The wallet will only show the contract call, not a native currency transfer
-    writeContract({
-      address: ZORRITO_YIELD_ESCROW_ADDRESS,
-      abi: ZORRITO_YIELD_ESCROW_ABI,
-      functionName: 'deposit',
-      args: [amountWei],
-      // NO value parameter - function is nonpayable
+    // Send native CELO directly to the contract
+    // IMPORTANTE: El contrato necesita tener receive() o fallback() para aceptar CELO nativo
+    // Si el contrato no tiene estas funciones, la transacción fallará
+    // El contrato actual tiene deposit() como nonpayable, así que necesitarás modificar el contrato
+    sendTransaction({
+      to: ZORRITO_YIELD_ESCROW_ADDRESS,
+      value: amountWei, // Envía CELO nativo directamente
     })
-  }, [chainId, walletClient, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, writeContract])
+  }, [chainId, walletClient, amountWei, CELO_MAINNET_CHAIN_ID, item, address, publicClient, totalCost, sendTransaction])
 
   // Reset deposit state when deposit is confirmed
   useEffect(() => {
@@ -257,7 +254,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
     }
   }
 
-  const isTransactionPending = isDepositing || isWriting || isConfirming
+  const isTransactionPending = isDepositing || isSending || isConfirming
 
   // Now we can do conditional returns after all hooks
   if (!item) return null
