@@ -3,11 +3,10 @@
 import { useState } from "react"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { ToolsDisclaimer } from "@/components/tools-disclaimer"
-import { AgeVerification } from "@/components/age-verification"
 import { CreateFox } from "@/components/create-fox"
 import { FoxHome } from "@/components/fox-home"
 
-type Screen = "connect" | "disclaimer" | "ageVerification" | "create" | "home"
+type Screen = "connect" | "disclaimer" | "create" | "home"
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("connect")
@@ -20,10 +19,6 @@ export default function Home() {
   }
 
   const handleDisclaimerAcknowledged = () => {
-    setCurrentScreen("ageVerification")
-  }
-
-  const handleAgeVerified = () => {
     setCurrentScreen("create")
   }
 
@@ -50,13 +45,6 @@ export default function Home() {
     <main className="min-h-screen bg-black">
       {currentScreen === "connect" && <ConnectWallet onConnect={handleWalletConnected} />}
       {currentScreen === "disclaimer" && <ToolsDisclaimer onContinue={handleDisclaimerAcknowledged} />}
-      {currentScreen === "ageVerification" && (
-        <AgeVerification
-          walletAddress={walletAddress}
-          onVerified={handleAgeVerified}
-          onBack={() => setCurrentScreen("disclaimer")}
-        />
-      )}
       {currentScreen === "create" && (
         <CreateFox walletAddress={walletAddress} onFoxCreated={handleFoxCreated} onBack={handleBackToHome} />
       )}
