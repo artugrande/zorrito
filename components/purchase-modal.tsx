@@ -274,14 +274,14 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   if (showSuccess) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="bg-zinc-950 border-zinc-800 max-w-md">
-          <DialogHeader>
-            <div className="flex justify-center mb-4">
-              <CheckCircle2 className="h-16 w-16 text-green-500" />
-            </div>
-            <DialogTitle className="text-center text-2xl">Purchase Successful!</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 text-center">
+      <DialogContent className="bg-zinc-950 border-zinc-800 max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <CheckCircle2 className="h-12 w-12 sm:h-16 sm:w-16 text-green-500" />
+          </div>
+          <DialogTitle className="text-center text-xl sm:text-2xl">Purchase Successful!</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 sm:space-y-4 text-center">
             <div className="p-4 bg-black rounded-lg border border-zinc-800 space-y-2">
               <p className="text-zinc-400">Amount Spent</p>
               <div className="flex items-center justify-center gap-2">
@@ -325,63 +325,63 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-zinc-950 border-zinc-800 max-w-md">
+      <DialogContent className="bg-zinc-950 border-zinc-800 max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Confirm Purchase</DialogTitle>
-          <DialogDescription>Review your purchase before confirming</DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">Confirm Purchase</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">Review your purchase before confirming</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="p-4 bg-black rounded-lg border border-zinc-800 space-y-3">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="p-3 sm:p-4 bg-black rounded-lg border border-zinc-800 space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-zinc-400">Item</span>
-              <span className="font-semibold">{item.name}</span>
+              <span className="text-zinc-400 text-xs sm:text-sm">Item</span>
+              <span className="font-semibold text-xs sm:text-sm text-right">{item.name}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-zinc-400">Quantity</span>
-              <span className="font-semibold">{item.quantity}</span>
+              <span className="text-zinc-400 text-xs sm:text-sm">Quantity</span>
+              <span className="font-semibold text-xs sm:text-sm">{item.quantity}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-zinc-400">Description</span>
-              <span className="text-sm text-zinc-300">{item.duration}</span>
+              <span className="text-zinc-400 text-xs sm:text-sm">Description</span>
+              <span className="text-xs sm:text-sm text-zinc-300 text-right">{item.duration}</span>
             </div>
-            <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
-              <span className="text-zinc-400">Total Cost</span>
+            <div className="pt-2 sm:pt-3 border-t border-zinc-800 flex items-center justify-between">
+              <span className="text-zinc-400 text-xs sm:text-sm">Total Cost</span>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold text-white">{totalCost} CELO</span>
+                <span className="text-lg sm:text-xl font-bold text-white">{totalCost} CELO</span>
               </div>
             </div>
           </div>
 
-          <div className="p-3 bg-green-950/20 rounded-lg border border-green-800">
-            <p className="text-sm text-green-200">
+          <div className="p-2.5 sm:p-3 bg-green-950/20 rounded-lg border border-green-800">
+            <p className="text-xs sm:text-sm text-green-200 leading-relaxed">
               ✅ <strong>This purchase will deposit {totalCost} CELO to the escrow</strong> - your money will generate yield and you can withdraw it anytime.
             </p>
           </div>
 
-          <div className="p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
-            <p className="text-sm text-yellow-200">
+          <div className="p-2.5 sm:p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
+            <p className="text-xs sm:text-sm text-yellow-200 leading-relaxed">
               ⚠️ This item will be consumed immediately after purchase and cannot be refunded.
             </p>
           </div>
 
-          <div className="p-4 bg-blue-950/20 rounded-lg border border-blue-800 space-y-2">
-            <p className="text-sm font-semibold text-blue-200 mb-2">📋 Transaction Preview</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center bg-black/30 p-2 rounded">
-                <span className="text-blue-300">You will spend:</span>
-                <span className="font-bold text-white text-lg">{totalCost} CELO</span>
+          <div className="p-3 sm:p-4 bg-blue-950/20 rounded-lg border border-blue-800 space-y-2">
+            <p className="text-xs sm:text-sm font-semibold text-blue-200 mb-2">📋 Transaction Preview</p>
+            <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 bg-black/30 p-2 rounded">
+                <span className="text-blue-300 text-xs">You will spend:</span>
+                <span className="font-bold text-white text-base sm:text-lg">{totalCost} CELO</span>
               </div>
-              <div className="flex justify-between items-center bg-black/30 p-2 rounded">
-                <span className="text-blue-300">Contract:</span>
-                <span className="font-mono text-blue-200 text-xs">{ZORRITO_YIELD_ESCROW_ADDRESS}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 bg-black/30 p-2 rounded">
+                <span className="text-blue-300 text-xs">Contract:</span>
+                <span className="font-mono text-blue-200 text-[10px] sm:text-xs break-all sm:break-normal">{ZORRITO_YIELD_ESCROW_ADDRESS}</span>
               </div>
-              <div className="flex justify-between items-center bg-black/30 p-2 rounded">
-                <span className="text-blue-300">Function:</span>
-                <span className="text-blue-200">deposit({totalCost} CELO)</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 bg-black/30 p-2 rounded">
+                <span className="text-blue-300 text-xs">Function:</span>
+                <span className="text-blue-200 text-xs sm:text-sm break-all sm:break-normal">deposit({totalCost} CELO)</span>
               </div>
             </div>
-            <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-700 rounded">
-              <p className="text-xs text-yellow-200">
+            <div className="mt-2 sm:mt-3 p-2 bg-yellow-900/20 border border-yellow-700 rounded">
+              <p className="text-[10px] sm:text-xs text-yellow-200 leading-relaxed">
                 ⚠️ <strong>Important:</strong> The wallet will show the escrow contract address ({ZORRITO_YIELD_ESCROW_ADDRESS.slice(0, 8)}...{ZORRITO_YIELD_ESCROW_ADDRESS.slice(-6)}). 
                 The amount {totalCost} CELO is in the function parameters. This is safe - you're depositing to the escrow to generate yield.
               </p>
@@ -389,19 +389,19 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
           </div>
 
           {error && (
-            <div className="p-3 bg-red-950/20 rounded-lg border border-red-800">
+            <div className="p-2.5 sm:p-3 bg-red-950/20 rounded-lg border border-red-800">
               <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-400" />
-                <p className="text-sm text-red-200">{error}</p>
+                <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-400 flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-red-200 break-words">{error}</p>
               </div>
             </div>
           )}
 
           {needsApproval && !isApprovalConfirmed && (
-            <div className="p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
+            <div className="p-2.5 sm:p-3 bg-yellow-950/20 rounded-lg border border-yellow-800">
               <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-yellow-400" />
-                <p className="text-sm text-yellow-200">
+                <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-yellow-200">
                   You need to approve CELO token spending first.
                 </p>
               </div>
@@ -409,10 +409,10 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
           )}
 
           {isTransactionPending && (
-            <div className="p-3 bg-blue-950/20 rounded-lg border border-blue-800">
+            <div className="p-2.5 sm:p-3 bg-blue-950/20 rounded-lg border border-blue-800">
               <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
-                <p className="text-sm text-blue-200">
+                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400 animate-spin flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-blue-200">
                   {isApproving || isApprovalConfirming
                     ? "Approving CELO token..."
                     : isDepositing
@@ -443,23 +443,23 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <Button
               variant="outline"
               onClick={handleClose}
               disabled={isTransactionPending}
-              className="flex-1 border-zinc-700 bg-transparent"
+              className="flex-1 border-zinc-700 bg-transparent text-xs sm:text-sm h-10 sm:h-11"
             >
               Cancel
             </Button>
             <Button
               onClick={handleConfirmPurchase}
               disabled={isTransactionPending}
-              className="flex-1 bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-white text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm h-10 sm:h-11"
             >
               {isTransactionPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                   Processing...
                 </>
               ) : (
