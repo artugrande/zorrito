@@ -31,7 +31,6 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   const { address, isConnected } = useAccount()
-  const CELO_MAINNET_CHAIN_ID = 42220
   
   // Use wagmi's useSendTransaction to send native CELO directly to contract
   // The contract needs to have receive() or fallback() to accept native CELO
