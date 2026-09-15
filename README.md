@@ -92,7 +92,8 @@ adapter asks the pool for one stroop extra and pays the exact amount from its
 own balance, keeping the remainder as a dust fund.
 
 **Web app** (`web/`). Next.js 16, Tailwind 4, `@stellar/stellar-sdk` 17,
-Stellar Wallets Kit (Freighter, xBull, Lobstr). Prize growing live, countdown
+Stellar Wallets Kit (Freighter, xBull, Lobstr) plus a custom module for
+[Cosmos Wallet](https://cosmospay.lat). Prize growing live, countdown
 to the second, Blend APY read from the pool, streak, referral link, swap-in
 from XLM or USDT0, human-readable status messages with a link to every
 transaction. Deployed on Vercel.

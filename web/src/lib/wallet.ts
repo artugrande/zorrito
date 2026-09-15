@@ -40,16 +40,19 @@ async function kit(red: Red = redActual): Promise<Kit> {
   const network = red === "mainnet" ? Networks.PUBLIC : Networks.TESTNET;
 
   if (!iniciado) {
-    const [{ FreighterModule }, { xBullModule }, { LobstrModule }] =
+    const [{ FreighterModule }, { xBullModule }, { LobstrModule }, { CosmosModule }] =
       await Promise.all([
         import("@creit.tech/stellar-wallets-kit/modules/freighter"),
         import("@creit.tech/stellar-wallets-kit/modules/xbull"),
         import("@creit.tech/stellar-wallets-kit/modules/lobstr"),
+        import("./wallets/cosmos"),
       ]);
 
     StellarWalletsKit.init({
       network,
-      modules: [new FreighterModule(), new xBullModule(), new LobstrModule()],
+      // Cosmos Wallet (cosmospay.lat) es un módulo propio: la extensión
+      // inyecta window.cosmosWallet y el kit todavía no la trae.
+      modules: [new FreighterModule(), new CosmosModule(), new xBullModule(), new LobstrModule()],
       // El modal con los colores de Zorrito. El kit pinta en el DOM de la
       // página (no en shadow DOM) y sus divs de header y footer llevan la
       // clase `glass`, igual que nuestro header: globals.css la aísla.

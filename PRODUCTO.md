@@ -140,7 +140,7 @@ Retirar funciona siempre: sin penalidad, sin esperar el sorteo, sin permiso.
 - **Uso de Stellar**: Soroban, host functions BLS del Protocolo 22, Blend
   como fuente de rendimiento, USDC y USDT0 como SAC, Soroswap y el DEX
   clásico (path payments) para entrar con cualquier moneda, Stellar Wallets
-  Kit.
+  Kit con Freighter, xBull, Lobstr y Cosmos Wallet.
 - **Funciona**: en mainnet con plata real (cambio, depósito en Blend y
   retiro probados desde la app), y decenas de rondas sorteadas en testnet.
   Todo verificable en stellar.expert.

@@ -243,7 +243,11 @@ export default function Docs() {
           <a href="https://laboratory.stellar.org/#account-creator?network=test" target="_blank" rel="noopener">
             el laboratorio de Stellar
           </a>
-          .
+          , o directamente con{" "}
+          <a href="https://cosmospay.lat" target="_blank" rel="noopener">
+            Cosmos Wallet
+          </a>
+          , que al crear una cuenta en testnet la fondea sola.
         </p>
 
         <hr />
@@ -341,7 +345,8 @@ export default function Docs() {
               </td>
               <td>
                 Next.js 16, Tailwind 4, <code>@stellar/stellar-sdk</code> 17, Stellar Wallets Kit
-                (Freighter, xBull, Lobstr). Desplegada en Vercel.
+                (Freighter, xBull, Lobstr) más un módulo propio para Cosmos Wallet. Desplegada en
+                Vercel.
               </td>
             </tr>
             <tr>
@@ -474,7 +479,8 @@ export default function Docs() {
         </Faq>
         <Faq q="¿Necesito algo en la wallet para entrar?">
           USDC y un poco de XLM para las fees. Si tu wallet todavía no acepta USDC, la app te
-          ofrece agregarlo con un toque: es la trustline de Stellar, una sola vez.
+          ofrece agregarlo con un toque: es la trustline de Stellar, una sola vez. Sirven
+          Freighter, Cosmos Wallet, xBull y Lobstr.
         </Faq>
         <Faq q="¿Puedo entrar con XLM o con USDT0?">
           Sí, con las dos. Elegís la moneda al lado del monto, la app cotiza en los dos lugares
