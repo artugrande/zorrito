@@ -365,6 +365,14 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                   <p className="mt-2 text-xs text-tenue">
                     Weighted by how much you put in, for how long, plus your streak and referrals.
                   </p>
+                  {miSaldo === 0n && misChances > 0 && (
+                    <p className="aviso mt-3 text-xs">
+                      You withdrew everything, but you still hold{" "}
+                      <span className="font-bold text-foreground">{(misChances / 100).toFixed(2)} %</span>{" "}
+                      of this round&apos;s odds: what you accrued while your money was in, earning
+                      part of this prize. It stops growing now and resets next round.
+                    </p>
+                  )}
 
                   {billetera && billetera.existe && (
                     <p className="mt-2 text-xs text-tenue">
