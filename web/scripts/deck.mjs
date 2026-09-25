@@ -23,6 +23,8 @@ function main() {
   const soroswap = fs.readFileSync(`${ASSETS}/soroswap.svg`, "utf8").replace(/<\?xml[^>]*>/, "");
   const BG = `${BASE}bg.png`;
   const LOGO = `${BASE}zorritofinallogo.png`;
+  // La foto del founder es opcional: si public/assets/arturo.jpg no está, va un ícono.
+  const FOTO = fs.existsSync(`${ASSETS}/arturo.jpg`) ? `${BASE}arturo.jpg` : null;
   const BLOQUES = { problema: "Problema", producto: "Producto", negocio: "Negocio", tecnica: "Técnica" };
 
   const slide = (bloque, titulo, cuerpo) => `
@@ -116,10 +118,10 @@ function main() {
       <div class="cuerpo">
         <div class="founder">
           <div class="tarjeta perfil">
-            <div class="ic xl">${ico("FaUserAstronaut", 56)}</div>
+            ${FOTO ? `<img class="foto" src="${FOTO}" alt="Arturo Grande">` : `<div class="ic xl">${ico("FaUserAstronaut", 56)}</div>`}
             <h3>Arturo Grande</h3>
             <p class="links">arturogrande.com · @ArtuGrande</p>
-            <p>Product builder, emprendedor y educador. Founder de Desafiatech, DevRel en Celo, host de Builders OFF the Record (275 K+ vistas). Salta, Argentina.</p>
+            <p>Product builder, emprendedor y educador. Founder de Desafiatech, DevRel en Celo, SpaceXAI Ambassador, host de Builders OFF the Record (275 K+ vistas). Salta, Argentina.</p>
           </div>
           <div class="roadmap">
             <div class="tarjeta hecho"><div class="eyebrow">Hoy</div><p>Mainnet con USDC en Blend · entrada con XLM y USDT0 · racha y referidos · Freighter, Cosmos, xBull y Lobstr</p></div>
@@ -205,6 +207,7 @@ function main() {
 
   .ic { width: 44px; height: 44px; border-radius: 50%; background: var(--orange-tint); color: var(--orange-deep); display: grid; place-items: center; flex: none; }
   .ic.xl { width: 110px; height: 110px; margin: 0 auto; }
+  .foto { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; margin: 0 auto; border: 3px solid var(--orange); box-shadow: 3px 4px 0 rgba(200,86,0,.18); }
 
   .pasos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
   .paso { position: relative; background: var(--surface); border: 2px solid var(--orange); border-radius: 18px; padding: 22px 18px 20px; text-align: center; box-shadow: 4px 5px 0 rgba(200,86,0,.18); display: flex; flex-direction: column; align-items: center; gap: 10px; }
