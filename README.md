@@ -9,6 +9,7 @@ Everybody else keeps exactly what they put in, and can withdraw at any time.
 - **App:** https://stellar.zorrito.app
 - **How it works:** https://stellar.zorrito.app/docs
 - **Testnet playground** (10-minute rounds): https://stellar.zorrito.app/test
+- **Pitch deck:** https://stellar.zorrito.app/deck
 
 Built for the **Argentina Builder Challenge** (BAF × Stellar), Genesis track.
 Live on Stellar mainnet with real money since September 2026.
@@ -214,6 +215,7 @@ cd web && SOLO_MIRAR=1 npm run keeper     # watch-only loop from a terminal
 | `cotizar.ts G... 10 USDT0` | How much USDC 10 USDT0 (or XLM) fetch on Soroswap and on the DEX, and which wins |
 | `costo-deploy.ts G...` | What uploading the WASMs would cost, simulated |
 | `keeper.ts` | The keeper as a loop for a terminal |
+| `deck.mjs` (`npm run deck`) | Regenerates the pitch deck at `public/deck.html`, served at `/deck` |
 | `drand-pk.ts` | Decompresses drand's group public key for the deploy |
 
 ## Documents

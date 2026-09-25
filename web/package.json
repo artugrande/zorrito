@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "keeper": "node --env-file=.env.local --import tsx scripts/keeper.ts",
+    "deck": "node scripts/deck.mjs",
     "drand:pk": "tsx scripts/drand-pk.ts"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "react-icons": "^5.7.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",

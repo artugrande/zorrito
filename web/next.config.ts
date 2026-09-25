@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: dirname(fileURLToPath(import.meta.url)),
   },
+  // El pitch es una página estática generada (web/scripts/deck.js) que vive en
+  // public/deck.html; /deck la sirve sin la extensión.
+  async rewrites() {
+    return [{ source: "/deck", destination: "/deck.html" }];
+  },
   // El dominio es stellar.zorrito.app; la URL de Vercel que quedó en algún
   // lado redirige ahí, con la ruta.
   async redirects() {

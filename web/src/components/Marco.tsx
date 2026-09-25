@@ -76,6 +76,8 @@ export function Marco({
             <span>·</span>
             <Link href="/docs">Cómo funciona</Link>
             <span>·</span>
+            <a href="/deck">Pitch</a>
+            <span>·</span>
             <a href="https://github.com/artugrande/zorrito" target="_blank" rel="noopener">
               GitHub
             </a>
