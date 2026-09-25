@@ -113,7 +113,7 @@ export async function invocarConRetorno(
 
   const simulacion = await servidor.simulateTransaction(tx);
   if (rpc.Api.isSimulationError(simulacion)) {
-    throw new Error(`la simulación falló: ${simulacion.error}`);
+    throw new Error(`simulation failed: ${simulacion.error}`);
   }
 
   const ensamblada = rpc.assembleTransaction(tx, simulacion).build();
@@ -123,14 +123,14 @@ export async function invocarConRetorno(
     TransactionBuilder.fromXDR(firmada, cx.passphrase),
   );
   if (enviada.status === "ERROR") {
-    throw new Error(`el envío falló: ${JSON.stringify(enviada.errorResult)}`);
+    throw new Error(`submission failed: ${JSON.stringify(enviada.errorResult)}`);
   }
 
   const resultado = await servidor.pollTransaction(enviada.hash, {
     attempts: 60,
   });
   if (resultado.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
-    throw new Error(`la transacción no entró: ${resultado.status}`);
+    throw new Error(`the transaction did not make it into the ledger: ${resultado.status}`);
   }
   return { hash: enviada.hash, retorno: resultado.returnValue ?? null };
 }

@@ -69,7 +69,7 @@ function aStroops(texto: string): bigint {
  * clásica (ChangeTrust), no un contrato: se manda igual por el RPC.
  */
 export async function agregarTrustline(p: Pozo, usuario: string, firmar: Firmante): Promise<string> {
-  if (!p.activo) throw new Error("XLM no necesita trustline");
+  if (!p.activo) throw new Error("XLM needs no trustline");
   const servidor = servidorDe(p.rpcUrl);
   const [cuenta, fee] = await Promise.all([servidor.getAccount(usuario), feeDeInclusion(servidor)]);
   const tx = new TransactionBuilder(cuenta, { fee, networkPassphrase: p.passphrase })
@@ -79,11 +79,11 @@ export async function agregarTrustline(p: Pozo, usuario: string, firmar: Firmant
   const firmada = await firmar(tx.toXDR());
   const enviada = await servidor.sendTransaction(TransactionBuilder.fromXDR(firmada, p.passphrase));
   if (enviada.status === "ERROR") {
-    throw new Error(`no se pudo agregar la trustline: ${JSON.stringify(enviada.errorResult)}`);
+    throw new Error(`could not add the trustline: ${JSON.stringify(enviada.errorResult)}`);
   }
   const r = await servidor.pollTransaction(enviada.hash, { attempts: 30 });
   if (r.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
-    throw new Error(`la trustline no entró: ${r.status}`);
+    throw new Error(`the trustline did not make it into the ledger: ${r.status}`);
   }
   return enviada.hash;
 }

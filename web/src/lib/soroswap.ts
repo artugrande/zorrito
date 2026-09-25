@@ -43,7 +43,7 @@ export type CotizacionSoroswap = {
 };
 
 function router(p: Pozo): string {
-  if (!p.entradas) throw new Error(`el pozo de ${p.simbolo} no acepta otras monedas`);
+  if (!p.entradas) throw new Error(`the ${p.simbolo} pool does not accept other currencies`);
   return p.entradas.router;
 }
 
@@ -86,7 +86,7 @@ export async function cotizarSoroswap(
   const mejor = resultados
     .filter((r): r is { camino: string[]; sale: bigint } => r.sale != null && r.sale > 0n)
     .sort((a, b) => (a.sale > b.sale ? -1 : a.sale < b.sale ? 1 : 0))[0];
-  if (!mejor) throw new Error(`Soroswap no cotiza ${moneda.simbolo} → ${p.simbolo}`);
+  if (!mejor) throw new Error(`Soroswap has no quote for ${moneda.simbolo} → ${p.simbolo}`);
   return {
     via: "soroswap",
     moneda,

@@ -66,7 +66,7 @@ export async function cotizarSdex(p: Pozo, moneda: Entrada, entra: bigint): Prom
     .map((c) => ({ sale: aStroops(c.destination_amount), camino: c.path.map(activoDe) }))
     .filter((c) => c.sale > 0n)
     .sort((a, b) => (a.sale > b.sale ? -1 : a.sale < b.sale ? 1 : 0))[0];
-  if (!mejor) throw new Error(`el DEX no cotiza ${moneda.simbolo} → ${p.simbolo}`);
+  if (!mejor) throw new Error(`the DEX has no quote for ${moneda.simbolo} → ${p.simbolo}`);
   return {
     via: "sdex",
     moneda,
@@ -106,11 +106,11 @@ export async function cambiarSdex(
   const firmada = await firmar(tx.toXDR());
   const enviada = await servidor.sendTransaction(TransactionBuilder.fromXDR(firmada, p.passphrase));
   if (enviada.status === "ERROR") {
-    throw new Error(`el cambio falló: ${JSON.stringify(enviada.errorResult)}`);
+    throw new Error(`the swap failed: ${JSON.stringify(enviada.errorResult)}`);
   }
   const r = await servidor.pollTransaction(enviada.hash, { attempts: 60 });
   if (r.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
-    throw new Error(`el cambio no entró: ${r.status}`);
+    throw new Error(`the swap did not make it into the ledger: ${r.status}`);
   }
   try {
     // La forma "wire" del XDR: uniones como objetos con `code`/`type` y el

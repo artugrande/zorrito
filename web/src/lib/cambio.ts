@@ -26,8 +26,8 @@ export type Cotizacion = CotizacionSoroswap | CotizacionSdex;
 
 /** Cómo se cuenta en pantalla por dónde va el cambio. */
 export function dondeCambia(c: Cotizacion): string {
-  if (c.via === "sdex") return c.camino.length > 0 ? "el DEX de Stellar, pasando por otro activo" : "el DEX de Stellar";
-  return c.camino.length > 2 ? "Soroswap, pasando por XLM" : "Soroswap";
+  if (c.via === "sdex") return c.camino.length > 0 ? "the Stellar DEX, through another asset" : "the Stellar DEX";
+  return c.camino.length > 2 ? "Soroswap, through XLM" : "Soroswap";
 }
 
 /** La mejor cotización de las dos vías para `entra` de `moneda`. */
@@ -45,7 +45,7 @@ export async function cotizar(
     .filter((r): r is PromiseFulfilledResult<Cotizacion> => r.status === "fulfilled")
     .map((r) => r.value)
     .sort((a, b) => (a.sale > b.sale ? -1 : a.sale < b.sale ? 1 : 0));
-  if (validas.length === 0) throw new Error(`nadie cotiza ${moneda.simbolo} → ${p.simbolo}`);
+  if (validas.length === 0) throw new Error(`no venue quotes ${moneda.simbolo} → ${p.simbolo}`);
   return validas[0];
 }
 

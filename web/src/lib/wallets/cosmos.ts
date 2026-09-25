@@ -52,7 +52,7 @@ function proveedor(esperaMs = 300): Promise<CosmosWallet | null> {
 function nombreDeRed(passphrase: string): string {
   if (passphrase.startsWith("Public Global Stellar Network")) return "mainnet";
   if (passphrase.startsWith("Test SDF Network")) return "testnet";
-  return "otra red";
+  return "another network";
 }
 
 export class CosmosModule implements ModuleInterface {
@@ -68,14 +68,14 @@ export class CosmosModule implements ModuleInterface {
 
   private async exigir(): Promise<CosmosWallet> {
     const w = await proveedor();
-    if (!w) throw new Error("Cosmos Wallet no está instalada");
+    if (!w) throw new Error("Cosmos Wallet is not installed");
     return w;
   }
 
   async getAddress(): Promise<{ address: string }> {
     const w = await this.exigir();
     const { address } = await w.getAddress();
-    if (!address) throw new Error("Cosmos Wallet no devolvió una dirección");
+    if (!address) throw new Error("Cosmos Wallet did not return an address");
     return { address };
   }
 
@@ -88,7 +88,7 @@ export class CosmosModule implements ModuleInterface {
       const red = await w.getNetwork();
       if (red.networkPassphrase && red.networkPassphrase !== opts.networkPassphrase) {
         throw new Error(
-          `Cosmos Wallet está en ${nombreDeRed(red.networkPassphrase)} y este pozo es de ${nombreDeRed(opts.networkPassphrase)}. Cambiá la red en la wallet y volvé a intentar.`,
+          `Cosmos Wallet is on ${nombreDeRed(red.networkPassphrase)} and this pool is on ${nombreDeRed(opts.networkPassphrase)}. Switch the network in the wallet and try again.`,
         );
       }
     }
@@ -100,7 +100,7 @@ export class CosmosModule implements ModuleInterface {
   }
 
   async signAuthEntry(): Promise<{ signedAuthEntry: string; signerAddress?: string }> {
-    throw new Error("Cosmos Wallet no firma entradas de autorización sueltas");
+    throw new Error("Cosmos Wallet does not sign standalone authorization entries");
   }
 
   async signMessage(

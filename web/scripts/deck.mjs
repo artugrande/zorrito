@@ -1,5 +1,5 @@
 // Genera el pitch (public/deck.html, servido en /deck) como 8 diapositivas
-// 16:9 que contestan cuatro preguntas: problema, producto, negocio y técnica.
+// 16:9, en inglés, que contestan cuatro preguntas: problema, producto, negocio y técnica.
 // Uso: node scripts/deck.mjs [salida] [--relativo]
 //   --relativo: referencia los assets como "assets/..." en vez de "/assets/..."
 //   (para publicar la página fuera de la app, junto a una copia de esa carpeta).
@@ -25,7 +25,7 @@ function main() {
   const LOGO = `${BASE}zorritofinallogo.png`;
   // La foto del founder es opcional: si public/assets/arturo.jpg no está, va un ícono.
   const FOTO = fs.existsSync(`${ASSETS}/arturo.jpg`) ? `${BASE}arturo.jpg` : null;
-  const BLOQUES = { problema: "Problema", producto: "Producto", negocio: "Negocio", tecnica: "Técnica" };
+  const BLOQUES = { problema: "Problem", producto: "Product", negocio: "Business", tecnica: "Tech" };
 
   const slide = (bloque, titulo, cuerpo) => `
     <section class="slide" data-bloque="${bloque}">
@@ -41,92 +41,92 @@ function main() {
     `<section class="slide portada" style="background-image:url('${BG}')">
       <div class="tarjeta hero">
         <img src="${LOGO}" alt="Zorrito" class="logo-grande">
-        <h1>Lotería sin pérdida</h1>
-        <p class="lead">Depositás dinero en un pozo. El pozo genera rendimientos en Blend. Cada semana, uno se lleva el rendimiento. Nadie pierde su capital inicial.</p>
-        <p class="meta">Arturo Grande, founder · Argentina Builder Challenge, BAF × Stellar · Septiembre 2026</p>
+        <h1>The no-loss lottery</h1>
+        <p class="lead">You put money into a pool. The pool earns yield on Blend. Every week, one saver takes the yield. Nobody loses their initial capital.</p>
+        <p class="meta">Arturo Grande, founder · Argentina Builder Challenge, BAF × Stellar · September 2026</p>
       </div>
     </section>`,
 
     // 2 Problema
-    slide("problema", "Ahorrar no motiva. La lotería destruye capital.", `
+    slide("problema", "Saving does not motivate. The lottery destroys capital.", `
       <div class="dos">
-        <div class="tarjeta"><div class="ic">${ico("FaPiggyBank")}</div><div class="grande">2 USD</div><p>Es lo que gana en un año quien ahorra 50 USD al 4 %. No cambia nada y no motiva a nadie.</p></div>
-        <div class="tarjeta"><div class="ic">${ico("FaDice")}</div><div class="grande">0 USD</div><p>Es lo que le queda a casi todos los que juegan a la lotería. Motiva muchísimo, y la plata no vuelve.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaPiggyBank")}</div><div class="grande">2 USD</div><p>What someone saving 50 USD at 4 % earns in a year. It changes nothing and motivates nobody.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaDice")}</div><div class="grande">0 USD</div><p>What almost everyone who plays the lottery is left with. It motivates like nothing else, and the money never comes back.</p></div>
       </div>
       <div class="stats">
-        ${stat("1956", "Premium Bonds del Reino Unido: un pozo sin pérdida estatal, 22 M de participantes")}
-        ${stat("812 → 0", "proyectos relevados en el ecosistema Stellar; ninguno hace ahorro premiado")}
+        ${stat("1956", "UK Premium Bonds: a state-run no-loss pool with 22 M participants")}
+        ${stat("812 → 0", "Stellar ecosystem projects surveyed; none does prize-linked savings")}
       </div>`),
 
     // 3 Cómo funciona
-    slide("producto", "Juntar las dos cosas y sacarles lo malo", `
+    slide("producto", "Combine the two and drop what is bad about each", `
       <div class="pasos">
-        ${paso(1, "FaCoins", "Depositás", "USDC, o XLM y USDT0 que se cambian en la puerta. Va directo a Blend.")}
-        ${paso(2, "FaChartLine", "El pozo genera", "El interés de Blend se acumula como premio, y crece en vivo.")}
-        ${paso(3, "FaRandom", "Termina el contador", "Al cumplirse la semana, el sorteo se dispara solo. drand da el número y el contrato lo verifica.")}
-        ${paso(4, "FaTrophy", "Uno cobra", "El premio entero a un ganador. Los demás siguen con lo que pusieron.")}
+        ${paso(1, "FaCoins", "You deposit", "USDC, or XLM and USDT0 swapped at the door. It goes straight into Blend.")}
+        ${paso(2, "FaChartLine", "The pool earns", "Blend's interest accumulates as the prize, and grows live.")}
+        ${paso(3, "FaRandom", "The timer runs out", "When the week is up, the draw fires on its own. drand provides the number and the contract verifies it.")}
+        ${paso(4, "FaTrophy", "One wins", "The whole prize goes to one winner. Everyone else keeps what they put in.")}
       </div>
-      <p class="cierre-slide verde">Retirás cuando quieras: sin penalidad, sin esperar el sorteo, sin permiso.</p>`),
+      <p class="cierre-slide verde">Withdraw whenever you want: no penalty, no waiting for the draw, no permission.</p>`),
 
     // 4 Producto en mainnet
-    slide("producto", "En mainnet, con plata real", `
+    slide("producto", "On mainnet, with real money", `
       <div class="producto">
         <div class="tarjeta mock">
-          <div class="eyebrow">Premio en juego</div>
+          <div class="eyebrow">Prize at stake</div>
           <div class="premio"><span class="cifra">12.3456789</span> <span class="unidad">USDC</span></div>
-          <div class="envivo"><i></i> En vivo</div>
-          <div class="countdown"><small>Se sortea en</small><b>6d 23:59:58</b></div>
-          <p class="mini">Números ilustrativos</p>
+          <div class="envivo"><i></i> Live</div>
+          <div class="countdown"><small>Draw in</small><b>6d 23:59:58</b></div>
+          <p class="mini">Illustrative numbers</p>
         </div>
         <div class="feats">
-          ${feat("FaWallet", "Entrás con lo que tengas", "USDC, XLM o USDT0. La app cotiza Soroswap y el DEX de Stellar y cambia por el que más da.")}
-          ${feat("FaFire", "Racha y referidos", "Siete días de “ahorré hoy” duplican tus chances. Cada referido suma el 10 % de su capital a tu peso.")}
-          ${feat("FaCheckCircle", "Probado de punta a punta", "Cambio, depósito en Blend y retiro con plata real desde la app. Freighter, Cosmos, xBull y Lobstr.")}
+          ${feat("FaWallet", "Join with what you have", "USDC, XLM or USDT0. The app quotes Soroswap and the Stellar DEX and swaps through whichever pays more.")}
+          ${feat("FaFire", "Streak and referrals", "Seven days of “I saved today” double your odds. Each referral adds 10 % of their capital to your weight.")}
+          ${feat("FaCheckCircle", "Tested end to end", "Swap, deposit into Blend and withdrawal with real money from the app. Freighter, Cosmos, xBull and Lobstr.")}
         </div>
       </div>
-      <div class="stats">${stat("15/09", "en mainnet")}${stat("3 días", "de la idea a mainnet")}${stat("60", "tests de contratos")}${stat("5.000", "USDC de tope hasta la auditoría")}</div>`),
+      <div class="stats">${stat("Sep 15", "live on mainnet")}${stat("3 days", "from idea to mainnet")}${stat("60", "contract tests")}${stat("5,000", "USDC cap until the audit")}</div>`),
 
     // 5 Negocio
-    slide("negocio", `Cómo gana plata <span class="tenue">(propuesto)</span>`, `
+    slide("negocio", `How it makes money <span class="tenue">(proposed)</span>`, `
       <div class="dos">
-        <div class="tarjeta"><div class="ic">${ico("FaPercent")}</div><h3>Comisión sobre el premio</h3><p>5 a 10 % del rendimiento sorteado en cada ronda. Nunca sobre el capital. Fijada en el contrato, sin admin.</p></div>
-        <div class="tarjeta"><div class="ic">${ico("FaStore")}</div><h3>Pozos para comunidades</h3><p>Un pozo con la marca de una wallet, una fintech o un club: mismo contrato, otro token o ritmo. La fee se comparte.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaPercent")}</div><h3>Fee on the prize</h3><p>5 to 10 % of the yield drawn each round. Never on the capital. Fixed in the contract, no admin.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaStore")}</div><h3>Pools for communities</h3><p>A branded pool for a wallet, a fintech or a club: same contract, another token or cadence. The fee is shared.</p></div>
       </div>
-      <div class="stats">${stat("1 M USDC", "en el pozo al 8 % anual")}${stat("80.000 USD", "al año en premios")}${stat("8.000 USD", "al año para Zorrito con 10 %, sin custodiar nada")}</div>
+      <div class="stats">${stat("1 M USDC", "in the pool at 8 % a year")}${stat("80,000 USD", "a year in prizes")}${stat("8,000 USD", "a year for Zorrito at 10 %, with no custody")}</div>
       <table>
-        <thead><tr><th></th><th>Motiva</th><th>Capital seguro</th><th>Azar verificable</th><th>En Stellar</th></tr></thead>
+        <thead><tr><th></th><th>Motivates</th><th>Capital safe</th><th>Verifiable randomness</th><th>On Stellar</th></tr></thead>
         <tbody>
-          <tr><td>Lotería</td><td class="si">Sí</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
-          <tr><td>Blend directo</td><td class="no">No</td><td class="si">Sí</td><td class="na">n/a</td><td class="si">Sí</td></tr>
-          <tr><td>PoolTogether</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">No</td></tr>
-          <tr class="nosotros"><td>Zorrito</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+          <tr><td>Lottery</td><td class="si">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+          <tr><td>Blend directly</td><td class="no">No</td><td class="si">Yes</td><td class="na">n/a</td><td class="si">Yes</td></tr>
+          <tr><td>PoolTogether</td><td class="si">Yes</td><td class="si">Yes</td><td class="si">Yes</td><td class="no">No</td></tr>
+          <tr class="nosotros"><td>Zorrito</td><td class="si">Yes</td><td class="si">Yes</td><td class="si">Yes</td><td class="si">Yes</td></tr>
         </tbody>
       </table>`),
 
     // 6 Técnica
-    slide("tecnica", "Por qué Stellar, y por qué confiar", `
+    slide("tecnica", "Why Stellar, and why trust it", `
       <div class="tres">
-        <div class="tarjeta"><div class="ic">${ico("FaChartLine")}</div><h3>Rendimiento real</h3><p>Blend v2, posición de Supply sin colateral: genera interés y no puede liquidarse. USDC paga ~8 % anual.</p></div>
-        <div class="tarjeta"><div class="ic">${ico("FaRandom")}</div><h3>Azar verificable</h3><p>drand firma un número que no existía al cerrar. El contrato lo verifica con BLS12-381 del Protocolo 22. Nadie lo sesga.</p></div>
-        <div class="tarjeta"><div class="ic">${ico("FaBolt")}</div><h3>Sorteo automático y barato</h3><p>Al vencer el contador un keeper dispara el sorteo por fracciones de centavo. Si falla, la app lo reintenta sola.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaChartLine")}</div><h3>Real yield</h3><p>Blend v2, non-collateral Supply position: it earns interest and cannot be liquidated. USDC pays ~8 % a year.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaRandom")}</div><h3>Verifiable randomness</h3><p>drand signs a number that did not exist at close. The contract verifies it with Protocol 22's BLS12-381. Nobody can bias it.</p></div>
+        <div class="tarjeta"><div class="ic">${ico("FaBolt")}</div><h3>Automatic, cheap draw</h3><p>When the timer runs out a keeper fires the draw for a fraction of a cent. If it fails, the app retries on its own.</p></div>
       </div>
-      <div class="stats">${stat("0", "roles: sin admin, sin pausa, nadie toca fondos")}${stat("2^20", "cuentas en un Fenwick tree; ~21 escrituras por operación")}${stat("60", "tests, incluido Blend real y firmas BLS")}${stat("Rust", "Soroban SDK 27 · Next.js 16 · stellar-sdk 17")}</div>`),
+      <div class="stats">${stat("0", "roles: no admin, no pause, nobody touches funds")}${stat("2^20", "accounts in a Fenwick tree; ~21 writes per operation")}${stat("60", "tests, including real Blend and BLS signatures")}${stat("Rust", "Soroban SDK 27 · Next.js 16 · stellar-sdk 17")}</div>`),
 
     // 7 Founder y roadmap
     `<section class="slide">
-      <header><img src="${LOGO}" alt=""><h2>Quién está atrás, y qué sigue</h2></header>
+      <header><img src="${LOGO}" alt=""><h2>Who is behind it, and what comes next</h2></header>
       <div class="cuerpo">
         <div class="founder">
           <div class="tarjeta perfil">
             ${FOTO ? `<img class="foto" src="${FOTO}" alt="Arturo Grande">` : `<div class="ic xl">${ico("FaUserAstronaut", 56)}</div>`}
             <h3>Arturo Grande</h3>
             <p class="links">arturogrande.com · @ArtuGrande</p>
-            <p>Product builder, emprendedor y educador. Founder de Desafiatech, DevRel en Celo, SpaceXAI Ambassador, host de Builders OFF the Record (275 K+ vistas). Salta, Argentina.</p>
+            <p>Product builder, entrepreneur and educator. Founder of Desafiatech, DevRel at Celo, SpaceXAI Ambassador, host of Builders OFF the Record (275 K+ views). Salta, Argentina.</p>
           </div>
           <div class="roadmap">
-            <div class="tarjeta hecho"><div class="eyebrow">Hoy</div><p>Mainnet con USDC en Blend · entrada con XLM y USDT0 · racha y referidos · Freighter, Cosmos, xBull y Lobstr</p></div>
-            <div class="tarjeta"><div class="eyebrow">Q4 2026</div><p>Auditoría y subida del tope · comisión sobre el premio en el contrato · distribución en comunidades</p></div>
-            <div class="tarjeta"><div class="eyebrow">2027</div><p>Pozos por comunidad con marca propia · pozo de USDT0 · app móvil y avisos del sorteo</p></div>
+            <div class="tarjeta hecho"><div class="eyebrow">Today</div><p>Mainnet with USDC on Blend · join with XLM and USDT0 · streak and referrals · Freighter, Cosmos, xBull and Lobstr</p></div>
+            <div class="tarjeta"><div class="eyebrow">Q4 2026</div><p>Audit and a higher cap · fee on the prize in the contract · distribution through communities</p></div>
+            <div class="tarjeta"><div class="eyebrow">2027</div><p>Branded pools per community · USDT0 pool · mobile app and draw notifications</p></div>
           </div>
         </div>
       </div>
@@ -136,9 +136,9 @@ function main() {
     `<section class="slide portada" style="background-image:url('${BG}')">
       <div class="tarjeta hero">
         <img src="${LOGO}" alt="Zorrito" class="logo-medio">
-        <h1>Probalo en mainnet</h1>
+        <h1>Try it on mainnet</h1>
         <p class="url">stellar.zorrito.app</p>
-        <p class="lead ink">Buscamos una auditoría para subir el tope y distribución con wallets y comunidades de América Latina.</p>
+        <p class="lead ink">We are looking for an audit to raise the cap, and distribution with wallets and communities across Latin America.</p>
         <p class="meta">github.com/artugrande/zorrito · stellar.zorrito.app/docs</p>
         <div class="marcas">Powered by <span>Blend</span> · <span class="soro">${soroswap}</span> · <span>Stellar</span></div>
       </div>
@@ -146,11 +146,11 @@ function main() {
   ];
 
   const html = `<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Pitch de Zorrito: lotería sin pérdida en Stellar.">
+<meta name="description" content="Zorrito pitch: the no-loss lottery on Stellar.">
 <link rel="icon" href="${RELATIVO ? "assets/zorritofinallogo.png" : "/icon.png"}">
 <title>Zorrito · Pitch</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@600&display=swap">
@@ -279,10 +279,10 @@ ${slides.join("\n")}
 <div class="zona der" id="zonaDer" aria-hidden="true"></div>
 <div class="nav">
   <span class="actual" id="actual"></span>
-  <button id="prev" type="button" aria-label="Anterior">&#8592;</button>
+  <button id="prev" type="button" aria-label="Previous">&#8592;</button>
   <span class="contador" id="contador">1 / ${slides.length}</span>
-  <button id="next" type="button" aria-label="Siguiente">&#8594;</button>
-  <span class="ayuda">flechas del teclado · click a los costados · deslizá en el celular</span>
+  <button id="next" type="button" aria-label="Next">&#8594;</button>
+  <span class="ayuda">arrow keys · click the sides · swipe on mobile</span>
 </div>
 <script>
 (() => {

@@ -16,7 +16,7 @@ export function BotonWallet({
     return (
       <button
         className="btn-wallet conectada"
-        title={`${yo}\nTocá para desconectar`}
+        title={`${yo}\nTap to disconnect`}
         onClick={onDesconectar}
       >
         👛 {corta(yo)} <span className="ml-1 opacity-60">✕</span>
@@ -25,7 +25,7 @@ export function BotonWallet({
   }
   return (
     <button className="btn-wallet" onClick={onConectar} disabled={cargando}>
-      {cargando ? "…" : "Conectar wallet"}
+      {cargando ? "…" : "Connect wallet"}
     </button>
   );
 }

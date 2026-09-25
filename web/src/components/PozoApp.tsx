@@ -239,7 +239,7 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
   function montoValido(): bigint | null {
     const m = aStroops(monto);
     if (m == null || m <= 0n) {
-      setError("Poné un monto válido, con hasta 7 decimales.");
+      setError("Enter a valid amount, with up to 7 decimals.");
       return null;
     }
     return m;
@@ -291,10 +291,10 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
 
       {pozo && activo === "test" && (
         <div className="aviso text-center">
-          🧪 <strong>Pozo de prueba en testnet.</strong> Rondas de 10 minutos con XLM de
-          mentira, para ver el ciclo entero. El de verdad está en la{" "}
+          🧪 <strong>Test pool on testnet.</strong> 10-minute rounds with play XLM, to watch the
+          whole cycle. The real one is on the{" "}
           <Link href="/" className="font-bold text-naranja underline underline-offset-4">
-            home
+            home page
           </Link>
           .
         </div>
@@ -302,15 +302,15 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
 
       {pozo && activo === "app" && pozo.red === "testnet" && (
         <div className="aviso text-center">
-          🧪 Este pozo corre en <strong>testnet</strong> con XLM de prueba. El de mainnet, en
-          USDC, está en camino.
+          🧪 This pool runs on <strong>testnet</strong> with test XLM. The mainnet one, in USDC,
+          is on its way.
         </div>
       )}
 
       {error && <Cartel m={error} tono="rojo" red={pozo?.red} />}
       {aviso && <Cartel m={aviso} tono="verde" red={pozo?.red} />}
 
-      {pozo && cargando && !vista && <p className="header-tagline text-center">Leyendo el pozo…</p>}
+      {pozo && cargando && !vista && <p className="header-tagline text-center">Reading the pool…</p>}
 
       {vista && pozo && (
         <div className="grid gap-4 md:grid-cols-2 md:items-start">
@@ -336,7 +336,7 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                   correr("racha", async () => {
                     const tx = await ahorrarHoy(pozo, yo, firmante);
                     await refrescar(yo);
-                    setAviso({ texto: "🔥 Racha marcada. Mañana suma más.", tx });
+                    setAviso({ texto: "🔥 Streak marked. Tomorrow counts for more.", tx });
                   })
                 }
               />
@@ -345,42 +345,42 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
           </div>
 
           <div className="flex flex-col gap-4">
-            <Panel titulo="🦊 Tu posición">
+            <Panel titulo="🦊 Your position">
               {yo ? (
                 <>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="stat">
-                      <div className="stat-label">Tu capital</div>
+                      <div className="stat-label">Your capital</div>
                       <div className="stat-value verde cifra">
                         {aTexto(miSaldo)} <span className="stat-unit">{pozo.simbolo}</span>
                       </div>
                     </div>
                     <div className="stat">
-                      <div className="stat-label">🎯 Tu probabilidad</div>
+                      <div className="stat-label">🎯 Your odds</div>
                       <div className="stat-value naranja cifra">
                         {(misChances / 100).toFixed(2)} <span className="stat-unit">%</span>
                       </div>
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-tenue">
-                    Pesa lo que pusiste, por cuánto tiempo, más tu racha y tus referidos.
+                    Weighted by how much you put in, for how long, plus your streak and referrals.
                   </p>
 
                   {billetera && billetera.existe && (
                     <p className="mt-2 text-xs text-tenue">
-                      En tu wallet: <span className="cifra font-bold text-foreground">{aTexto(billetera.saldo)} {pozo.simbolo}</span>
+                      In your wallet: <span className="cifra font-bold text-foreground">{aTexto(billetera.saldo)} {pozo.simbolo}</span>
                     </p>
                   )}
                   {billetera && !billetera.existe && (
                     <p className="aviso mt-3 text-xs">
-                      Esta wallet todavía no existe en {pozo.red}: mandale XLM primero.
+                      This wallet does not exist on {pozo.red} yet: send it some XLM first.
                     </p>
                   )}
                   {sinTrustline && (
                     <div className="aviso mt-3">
                       <p className="text-xs">
-                        Tu wallet todavía no acepta {pozo.simbolo}. Es un paso de Stellar, una sola
-                        vez, y no cuesta nada más que la fee.
+                        Your wallet does not accept {pozo.simbolo} yet. It is a one-time Stellar
+                        step, and it costs nothing beyond the fee.
                       </p>
                       <div className="mt-2">
                         <Boton
@@ -388,13 +388,13 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                             correr("trustline", async () => {
                               const tx = await agregarTrustline(pozo, yo, firmante);
                               await refrescar(yo);
-                              setAviso({ texto: `✓ Tu wallet ya acepta ${pozo.simbolo}.`, tx });
+                              setAviso({ texto: `✓ Your wallet now accepts ${pozo.simbolo}.`, tx });
                             })
                           }
                           cargando={accion === "trustline"}
                           disabled={accion !== null}
                         >
-                          Agregar {pozo.simbolo} a mi wallet
+                          Add {pozo.simbolo} to my wallet
                         </Boton>
                       </div>
                     </div>
@@ -402,8 +402,8 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
 
                   {referenteAplica && (
                     <p className="aviso aviso-verde mt-3 text-xs">
-                      🤝 Te invitó <span className="mono">{corta(referente!)}</span>. Con tu
-                      primer depósito, los dos suman chances.
+                      🤝 You were invited by <span className="mono">{corta(referente!)}</span>. With
+                      your first deposit, you both gain odds.
                     </p>
                   )}
 
@@ -419,20 +419,20 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                     ))}
                     {miSaldo > 0n && (
                       <button className="btn btn-blanco" onClick={() => setMonto(aTexto(miSaldo, 7))}>
-                        todo
+                        all
                       </button>
                     )}
                   </div>
                   <div className="mt-2 flex gap-2">
                     <input
                       inputMode="decimal"
-                      placeholder={`Monto en ${entrada ? entrada.simbolo : pozo.simbolo}`}
+                      placeholder={`Amount in ${entrada ? entrada.simbolo : pozo.simbolo}`}
                       value={monto}
                       onChange={(e) => setMonto(e.target.value)}
                       className="input-monto flex-1"
                     />
                     {pozo.entradas && (
-                      <div className="flex gap-1" role="radiogroup" aria-label="Pagar con">
+                      <div className="flex gap-1" role="radiogroup" aria-label="Pay with">
                         {[null, ...pozo.entradas.monedas.map((m) => m.simbolo)].map((m) => (
                           <button
                             key={m ?? pozo.simbolo}
@@ -452,25 +452,25 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                   {entrada && (
                     <p className="mt-2 text-xs text-tenue">
                       {saldoEntrada && !saldoEntrada.trustline ? (
-                        `Tu wallet no tiene ${entrada.simbolo}. Conseguí un poco en Freighter o Lobstr y volvé.`
+                        `Your wallet has no ${entrada.simbolo}. Get some in Freighter or Lobstr and come back.`
                       ) : cotizacionVigente ? (
                         <>
-                          Tus {aTexto(cotizacionVigente.entra)} {entrada.simbolo} son{" "}
+                          Your {aTexto(cotizacionVigente.entra)} {entrada.simbolo} are worth{" "}
                           <span className="cifra font-bold text-foreground">
                             ≈ {aTexto(cotizacionVigente.sale, 2)} {pozo.simbolo}
                           </span>{" "}
-                          hoy en {dondeCambia(cotizacionVigente)}, el que más da ahora. Se cambian
-                          en tu wallet y entra el {pozo.simbolo}: tu capital queda en dólares desde
-                          el primer segundo.
-                          {saldoEntrada && ` Tenés ${aTexto(saldoEntrada.saldo)} ${entrada.simbolo}.`}
+                          right now on {dondeCambia(cotizacionVigente)}, the best rate at the moment.
+                          They are swapped in your wallet and the {pozo.simbolo} goes in: your capital
+                          is in dollars from the first second.
+                          {saldoEntrada && ` You have ${aTexto(saldoEntrada.saldo)} ${entrada.simbolo}.`}
                         </>
                       ) : cotizando ? (
-                        "Cotizando en Soroswap y en el DEX de Stellar…"
+                        "Getting quotes from Soroswap and the Stellar DEX…"
                       ) : sinCotizacion != null && sinCotizacion === entraOtra ? (
-                        "No hay cotización para ese monto ahora. Probá con otro."
+                        "No quote for that amount right now. Try another one."
                       ) : (
-                        `Poné un monto en ${entrada.simbolo} y te digo cuánto ${pozo.simbolo} es hoy.` +
-                        (saldoEntrada ? ` Tenés ${aTexto(saldoEntrada.saldo)}.` : "")
+                        `Enter an amount in ${entrada.simbolo} and I will tell you how much ${pozo.simbolo} it is today.` +
+                        (saldoEntrada ? ` You have ${aTexto(saldoEntrada.saldo)}.` : "")
                       )}
                     </p>
                   )}
@@ -483,12 +483,12 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                             if (entra == null) return;
                             if (!entrada.activo && billetera && entra > billetera.xlm - RESERVA_XLM) {
                               setError(
-                                `Tenés ${aTexto(billetera.xlm)} XLM. Dejá al menos 1,5 XLM para la reserva de Stellar y las fees.`,
+                                `You have ${aTexto(billetera.xlm)} XLM. Keep at least 1.5 XLM for the Stellar reserve and fees.`,
                               );
                               return;
                             }
                             if (entrada.activo && saldoEntrada && entra > saldoEntrada.saldo) {
-                              setError(`Tenés ${aTexto(saldoEntrada.saldo)} ${entrada.simbolo} en la wallet, no más.`);
+                              setError(`You have ${aTexto(saldoEntrada.saldo)} ${entrada.simbolo} in your wallet, no more.`);
                               return;
                             }
                             // Cotización fresca al momento de firmar, no la de la pantalla.
@@ -496,13 +496,13 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                             setCotizacion(c);
                             if (vista.tope > 0n && vista.principal + c.sale > vista.tope) {
                               setError(
-                                `El pozo tiene un tope de ${aTexto(vista.tope, 0)} ${pozo.simbolo} y ya hay ${aTexto(vista.principal, 0)}.`,
+                                `The pool is capped at ${aTexto(vista.tope, 0)} ${pozo.simbolo} and already holds ${aTexto(vista.principal, 0)}.`,
                               );
                               return;
                             }
                             const recibido = await cambiar(pozo, yo, c, firmante);
                             setAviso(
-                              `✓ Cambiaste ${aTexto(entra)} ${entrada.simbolo} por ${aTexto(recibido)} ${pozo.simbolo}. Ahora firmá el depósito.`,
+                              `✓ You swapped ${aTexto(entra)} ${entrada.simbolo} for ${aTexto(recibido)} ${pozo.simbolo}. Now sign the deposit.`,
                             );
                             let tx: string;
                             try {
@@ -515,13 +515,13 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                               setAviso(null);
                               setError({
                                 ...m,
-                                texto: `El cambio salió bien: tenés ${aTexto(recibido)} ${pozo.simbolo} en tu wallet. Lo que no se completó es el depósito. ${m.texto} Cuando lo resuelvas, elegí ${pozo.simbolo} y tocá Depositar.`,
+                                texto: `The swap went through: you have ${aTexto(recibido)} ${pozo.simbolo} in your wallet. What did not complete is the deposit. ${m.texto} Once that is sorted, pick ${pozo.simbolo} and tap Deposit.`,
                               });
                               return;
                             }
                             setMonto("");
                             setAviso({
-                              texto: `✓ Cambiaste ${aTexto(entra)} ${entrada.simbolo} y depositaste ${aTexto(recibido)} ${pozo.simbolo}. Ya estás en el sorteo.`,
+                              texto: `✓ You swapped ${aTexto(entra)} ${entrada.simbolo} and deposited ${aTexto(recibido)} ${pozo.simbolo}. You are in the draw.`,
                               tx,
                             });
                             await refrescar(yo);
@@ -535,7 +535,7 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                           (saldoEntrada != null && !saldoEntrada.trustline)
                         }
                       >
-                        Cambiar y depositar
+                        Swap and deposit
                       </Boton>
                     ) : (
                       <Boton
@@ -545,7 +545,7 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                             if (m == null) return;
                             if (vista.tope > 0n && vista.principal + m > vista.tope) {
                               setError(
-                                `El pozo tiene un tope de ${aTexto(vista.tope, 0)} ${pozo.simbolo} y ya hay ${aTexto(vista.principal, 0)}.`,
+                                `The pool is capped at ${aTexto(vista.tope, 0)} ${pozo.simbolo} and already holds ${aTexto(vista.principal, 0)}.`,
                               );
                               return;
                             }
@@ -554,7 +554,7 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                               : await depositar(pozo, yo, m, firmante);
                             setMonto("");
                             setAviso({
-                              texto: `✓ Depositaste ${aTexto(m)} ${pozo.simbolo}. Ya estás en el sorteo, y tu capital sale cuando quieras.`,
+                              texto: `✓ You deposited ${aTexto(m)} ${pozo.simbolo}. You are in the draw, and your capital comes out whenever you want.`,
                               tx,
                             });
                             await refrescar(yo);
@@ -563,7 +563,7 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                         cargando={accion === "depositar"}
                         disabled={accion !== null || sinTrustline}
                       >
-                        Depositar
+                        Deposit
                       </Boton>
                     )}
                     <Boton
@@ -573,34 +573,34 @@ export function PozoApp({ pozo, activo }: { pozo: Pozo | null; activo: "app" | "
                           const m = montoValido();
                           if (m == null) return;
                           if (m > miSaldo) {
-                            setError(`Tenés ${aTexto(miSaldo)} ${pozo.simbolo} en el pozo, no más.`);
+                            setError(`You have ${aTexto(miSaldo)} ${pozo.simbolo} in the pool, no more.`);
                             return;
                           }
                           const tx = await retirar(pozo, yo, m, firmante);
                           setMonto("");
-                          setAviso({ texto: `✓ Retiraste ${aTexto(m)} ${pozo.simbolo}. Ya está en tu wallet.`, tx });
+                          setAviso({ texto: `✓ You withdrew ${aTexto(m)} ${pozo.simbolo}. It is in your wallet.`, tx });
                           await refrescar(yo);
                         })
                       }
                       cargando={accion === "retirar"}
                       disabled={accion !== null || miSaldo === 0n || entrada != null}
                     >
-                      Retirar
+                      Withdraw
                     </Boton>
                   </div>
                   <p className="mt-3 text-xs text-tenue">
-                    Retirás cuando quieras, sin penalidad, aunque haya un sorteo en curso. Tu
-                    capital nunca está en juego.
-                    {entrada && ` Los retiros son siempre en ${pozo.simbolo}.`}
+                    Withdraw whenever you want, with no penalty, even while a draw is running. Your
+                    capital is never at stake.
+                    {entrada && ` Withdrawals are always in ${pozo.simbolo}.`}
                   </p>
                 </>
               ) : (
                 <>
                   <p className="mb-4 text-sm text-tenue">
-                    Conectá una wallet de Stellar para depositar y ver tu probabilidad.
+                    Connect a Stellar wallet to deposit and see your odds.
                   </p>
                   <Boton onClick={conectarWallet} cargando={accion === "conectar"}>
-                    Conectar wallet
+                    Connect wallet
                   </Boton>
                 </>
               )}
@@ -668,35 +668,35 @@ function Premio({
 
   if (vista.sorteoPendiente) {
     const quedan = revela == null ? null : revela - ahora;
-    etiqueta = "El ganador se conoce en";
-    reloj = quedan == null ? "…" : quedan > 0 ? duracion(quedan) : "instantes";
+    etiqueta = "Winner revealed in";
+    reloj = quedan == null ? "…" : quedan > 0 ? duracion(quedan) : "moments";
     nota =
       quedan != null && quedan <= 0
-        ? "El resultado ya está decidido; lo estamos trayendo a la red."
-        : `Ya nadie puede cambiar el resultado. La ronda ${vista.ronda} ya arrancó: lo que entra ahora juega la próxima.`;
-    pill = { texto: "🎲 Sorteo en curso", tono: "ok" };
+        ? "The result is already decided; we are bringing it onto the network."
+        : `Nobody can change the result anymore. Round ${vista.ronda} has already started: what comes in now plays the next one.`;
+    pill = { texto: "🎲 Draw in progress", tono: "ok" };
   } else if (faltan <= 0) {
-    etiqueta = "Cerrando la ronda";
+    etiqueta = "Closing the round";
     reloj = "…";
-    nota = "En segundos se congela el premio y se elige al ganador.";
-    pill = { texto: "⏳ Cerrando", tono: "alerta" };
+    nota = "In seconds the prize is frozen and the winner is picked.";
+    pill = { texto: "⏳ Closing", tono: "alerta" };
   } else {
-    etiqueta = "Se sortea en";
+    etiqueta = "Draw in";
     reloj = duracion(faltan);
     nota = enVivo
-      ? "El premio crece segundo a segundo con el interés de Blend. Cuando el reloj llega a cero, se congela y uno se lo lleva."
-      : "Cuando llega a cero, el rendimiento se congela y uno se lo lleva.";
-    pill = { texto: `Ronda ${vista.ronda} en curso`, tono: "neutro" };
+      ? "The prize grows second by second with Blend's interest. When the clock hits zero, it is frozen and one saver takes it."
+      : "When it hits zero, the yield is frozen and one saver takes it.";
+    pill = { texto: `Round ${vista.ronda} in progress`, tono: "neutro" };
   }
 
   return (
-    <Panel titulo={<>🏆 {vista.sorteoPendiente ? "Premio de la ronda" : "Premio en juego"}</>}>
+    <Panel titulo={<>🏆 {vista.sorteoPendiente ? "This round's prize" : "Prize at stake"}</>}>
       <div className="flex flex-wrap items-baseline gap-2">
         <span className="premio-grande cifra">{aTexto(premio, enVivo ? 7 : 2)}</span>
         <span className="text-sm font-bold text-tenue">{simbolo}</span>
         {enVivo && (
-          <span className="en-vivo" title="Crece con el interés de Blend, segundo a segundo">
-            <span className="en-vivo-punto" /> en vivo
+          <span className="en-vivo" title="Grows with Blend's interest, second by second">
+            <span className="en-vivo-punto" /> live
           </span>
         )}
       </div>
@@ -709,10 +709,10 @@ function Premio({
       </div>
       <p className="mt-3 text-xs text-tenue">{nota}</p>
       <p className="mt-2 text-sm text-tenue">
-        Es el rendimiento que generó el pozo entero en{" "}
-        <span className="font-bold text-foreground">Blend</span>, no el capital. Uno se lo
-        lleva; los demás siguen con exactamente lo que pusieron.
-        {vista.premio === 0n && vista.principal > 0n && " Recién arranca: crece con las horas."}
+        This is the yield the whole pool earned on{" "}
+        <span className="font-bold text-foreground">Blend</span>, not the capital. One saver takes
+        it; everyone else keeps exactly what they put in.
+        {vista.premio === 0n && vista.principal > 0n && " It just started: it grows by the hour."}
       </p>
     </Panel>
   );
@@ -730,33 +730,33 @@ function apyMostrado(vista: Vista, tasa: TasaBlend | null): string | null {
 function Cifras({ vista, tasa, simbolo }: { vista: Vista; tasa: TasaBlend | null; simbolo: string }) {
   const apy = apyMostrado(vista, tasa);
   return (
-    <Panel titulo="📊 El pozo">
+    <Panel titulo="📊 The pool">
       <div className="grid grid-cols-3 gap-2">
         <div className="stat">
-          <div className="stat-label">🦊 Participan</div>
+          <div className="stat-label">🦊 Savers</div>
           <div className="stat-value cifra">{vista.participantes}</div>
         </div>
         <div className="stat">
-          <div className="stat-label">Depositado</div>
+          <div className="stat-label">Deposited</div>
           <div className="stat-value verde cifra">
             {aTexto(vista.principal, 0)} <span className="stat-unit">{simbolo}</span>
           </div>
           {vista.tope > 0n && (
-            <span className="stat-secondary">tope {aTexto(vista.tope, 0)} {simbolo}</span>
+            <span className="stat-secondary">cap {aTexto(vista.tope, 0)} {simbolo}</span>
           )}
         </div>
         <div className="stat">
-          <div className="stat-label">APY en Blend</div>
+          <div className="stat-label">APY on Blend</div>
           <div className="stat-value verde cifra">
             {apy ?? "—"}
             {apy && <span className="pulso ml-1 inline-block align-middle" />}
           </div>
           {apy && tasa && (
             <span className="stat-secondary">
-              pool al {(tasa.utilizacion * 100).toFixed(0)} % de uso
+              pool {(tasa.utilizacion * 100).toFixed(0)} % utilised
             </span>
           )}
-          {!apy && <span className="stat-secondary">leyendo el pool…</span>}
+          {!apy && <span className="stat-secondary">reading the pool…</span>}
         </div>
       </div>
     </Panel>
@@ -783,7 +783,7 @@ function Racha({
   const dias = Array.from({ length: RACHA_MAX }, (_, i) => i + 1);
   const siguiente = Math.min(rachaViva + 1, RACHA_MAX);
   return (
-    <Panel titulo="🔥 Tu racha">
+    <Panel titulo="🔥 Your streak">
       <div className="mb-3 flex items-center justify-between gap-2">
         {dias.map((d) => {
           const hecho = d <= rachaViva;
@@ -812,18 +812,18 @@ function Racha({
         {cargando
           ? "…"
           : marcoHoy
-            ? "✓ Hoy ya marcaste"
+            ? "✓ Marked for today"
             : miSaldo === 0n
-              ? "Depositá para arrancar la racha"
+              ? "Deposit to start your streak"
               : rachaViva === 0
-                ? "🔥 Ahorré hoy"
-                : `🔥 Ahorré hoy · día ${siguiente}`}
+                ? "🔥 I saved today"
+                : `🔥 I saved today · day ${siguiente}`}
       </button>
       <p className="mt-3 text-xs text-tenue">
-        Una vez por día. Cada día seguido suma más chances a la ronda; siete días seguidos las{" "}
-        <span className="font-bold text-foreground">duplican</span>. Saltear un día vuelve al
-        día 1.
-        {cuenta && cuenta.racha > 0 && rachaViva === 0 && " Tu racha anterior se cortó."}
+        Once a day. Every day in a row adds more odds to the round; seven days in a row{" "}
+        <span className="font-bold text-foreground">double</span> them. Skipping a day goes back
+        to day 1.
+        {cuenta && cuenta.racha > 0 && rachaViva === 0 && " Your previous streak broke."}
       </p>
     </Panel>
   );
@@ -845,16 +845,16 @@ function Referidos({
   const link =
     typeof window === "undefined" ? "" : `${window.location.origin}${ruta}?ref=${yo}`;
   return (
-    <Panel titulo="🤝 Invitá amigos">
+    <Panel titulo="🤝 Invite friends">
       <p className="text-sm text-tenue">
-        Cada amigo que entra con tu link te suma el{" "}
-        <span className="font-bold text-foreground">10 % de su capital</span> como chances,
-        mientras esté adentro. Hasta la mitad de tu propio capital.
+        Every friend who joins through your link adds{" "}
+        <span className="font-bold text-foreground">10 % of their capital</span> to your odds,
+        for as long as they are in. Up to half of your own capital.
       </p>
       {!cuenta && (
         <p className="aviso mt-3 text-xs">
-          Tu link empieza a contar con tu primer depósito: el pozo tiene que conocer tu wallet
-          para anotarte como referente. Copialo igual y compartilo.
+          Your link starts counting with your first deposit: the pool has to know your wallet
+          before it can record you as a referrer. Copy it anyway and share it.
         </p>
       )}
       <div className="mt-3 flex gap-2">
@@ -869,18 +869,18 @@ function Referidos({
             } catch {}
           }}
         >
-          {copiado ? "✓" : "Copiar"}
+          {copiado ? "✓" : "Copy"}
         </button>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div className="stat">
-          <div className="stat-label">Referidos</div>
+          <div className="stat-label">Referrals</div>
           <div className="stat-value cifra">{cuenta?.referidos ?? 0}</div>
         </div>
         <div className="stat">
-          <div className="stat-label">Te suman</div>
+          <div className="stat-label">They add</div>
           <div className="stat-value naranja cifra">
-            {aTexto(cuenta?.bonoRef ?? 0n, 0)} <span className="stat-unit">{simbolo} de peso</span>
+            {aTexto(cuenta?.bonoRef ?? 0n, 0)} <span className="stat-unit">{simbolo} of weight</span>
           </div>
         </div>
       </div>
@@ -891,33 +891,32 @@ function Referidos({
 function Blend({ tasa, simbolo }: { tasa: TasaBlend | null; simbolo: string }) {
   const apy = tasa ? porcentaje(tasa.apy) : null;
   return (
-    <Panel titulo="🌊 De dónde sale el premio">
+    <Panel titulo="🌊 Where the prize comes from">
       <div className="aviso aviso-verde flex items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-bold">Blend, el mercado de crédito de Stellar</div>
+          <div className="text-sm font-bold">Blend, Stellar&apos;s lending market</div>
           <div className="text-xs text-tenue">
-            El {simbolo} del pozo se presta ahí. El interés que pagan los que piden prestado es el
-            premio.
+            The pool&apos;s {simbolo} is lent out there. The interest borrowers pay is the prize.
           </div>
         </div>
         <div className="cifra shrink-0 text-lg font-extrabold text-verde">{apy ?? "—"}</div>
       </div>
       <ul className="mt-3 space-y-1 text-xs text-tenue">
         <li>
-          <span className="font-bold text-foreground">Sin colateral ni deuda.</span> La posición
-          no puede ser liquidada.
+          <span className="font-bold text-foreground">No collateral, no debt.</span> The position
+          cannot be liquidated.
         </li>
         <li>
-          <span className="font-bold text-foreground">El capital no se toca.</span> Solo el
-          interés generado entra al sorteo.
+          <span className="font-bold text-foreground">The capital is never touched.</span> Only the
+          interest earned goes into the draw.
         </li>
         <li>
-          <span className="font-bold text-foreground">Sin intermediarios.</span> El contrato
-          deposita y retira de Blend por su cuenta.
+          <span className="font-bold text-foreground">No intermediaries.</span> The contract
+          deposits into and withdraws from Blend on its own.
         </li>
       </ul>
       <Link href="/docs#blend" className="mt-3 inline-block text-xs font-bold text-naranja underline underline-offset-4">
-        Cómo se conecta con Blend →
+        How it connects to Blend →
       </Link>
     </Panel>
   );
@@ -925,10 +924,10 @@ function Blend({ tasa, simbolo }: { tasa: TasaBlend | null; simbolo: string }) {
 
 function Ganadores({ lista, red, simbolo }: { lista: Ganador[] | null; red: string; simbolo: string }) {
   return (
-    <Panel titulo="🎉 Últimos ganadores">
-      {lista == null && <p className="text-xs text-tenue">Buscando sorteos…</p>}
+    <Panel titulo="🎉 Latest winners">
+      {lista == null && <p className="text-xs text-tenue">Looking for draws…</p>}
       {lista && lista.length === 0 && (
-        <p className="py-3 text-center text-sm text-tenue">Todavía no hubo sorteos en este pozo.</p>
+        <p className="py-3 text-center text-sm text-tenue">No draws in this pool yet.</p>
       )}
       {lista && lista.length > 0 && (
         <div className="flex flex-col gap-2">
@@ -939,10 +938,10 @@ function Ganadores({ lista, red, simbolo }: { lista: Ganador[] | null; red: stri
               target="_blank"
               rel="noopener"
               className="fila"
-              title="Ver la transacción del sorteo"
+              title="View the draw transaction"
             >
               <span className="text-tenue">
-                <span className="font-bold text-foreground">Ronda {g.ronda}</span>
+                <span className="font-bold text-foreground">Round {g.ronda}</span>
                 <span className="mono ml-2">{corta(g.ganador)}</span>
               </span>
               <span className="cifra font-extrabold text-naranja">+{aTexto(g.premio, 4)} {simbolo}</span>
@@ -950,35 +949,35 @@ function Ganadores({ lista, red, simbolo }: { lista: Ganador[] | null; red: stri
           ))}
         </div>
       )}
-      <p className="mt-3 text-xs text-tenue">Cada sorteo es una transacción pública. Tocá uno para verla.</p>
+      <p className="mt-3 text-xs text-tenue">Every draw is a public transaction. Tap one to see it.</p>
     </Panel>
   );
 }
 
 function ComoFunciona() {
   return (
-    <Panel titulo="💡 Cómo funciona">
+    <Panel titulo="💡 How it works">
       <ol className="space-y-2 text-sm text-tenue">
         <li>
-          <span className="font-bold text-foreground">Depositás.</span> Tu plata va a generar
-          rendimiento en Blend junto con la de todos.
+          <span className="font-bold text-foreground">You deposit.</span> Your money earns yield
+          on Blend together with everyone else&apos;s.
         </li>
         <li>
-          <span className="font-bold text-foreground">Cada semana se sortea el rendimiento.</span>{" "}
-          Uno se lo lleva entero. Los demás no pierden nada: su capital sigue ahí.
+          <span className="font-bold text-foreground">Every week the yield is drawn.</span> One
+          saver takes all of it. Nobody else loses anything: their capital is still there.
         </li>
         <li>
-          <span className="font-bold text-foreground">Sumás chances</span> con más plata, más
-          tiempo, la racha diaria y tus referidos.
+          <span className="font-bold text-foreground">You gain odds</span> with more money, more
+          time, the daily streak and your referrals.
         </li>
         <li>
-          <span className="font-bold text-foreground">El azar viene de afuera.</span> Lo decide
-          drand, un beacon público de ~20 organizaciones, y el contrato verifica la firma. Ni
-          nosotros ni la red podemos elegir al ganador.
+          <span className="font-bold text-foreground">The randomness comes from outside.</span>{" "}
+          drand, a public beacon run by ~20 organisations, decides, and the contract verifies the
+          signature. Neither we nor the network can pick the winner.
         </li>
       </ol>
       <Link href="/docs" className="mt-3 inline-block text-xs font-bold text-naranja underline underline-offset-4">
-        Leer cómo está hecho →
+        Read how it is built →
       </Link>
     </Panel>
   );
@@ -986,12 +985,12 @@ function ComoFunciona() {
 
 function SinDeploy() {
   return (
-    <Panel titulo="Falta el contrato">
-      <p className="text-sm text-tenue">No hay ningún pozo configurado. Desplegalo y apuntá la app ahí:</p>
+    <Panel titulo="Contract missing">
+      <p className="text-sm text-tenue">No pool is configured. Deploy one and point the app at it:</p>
       <pre className="code-box mt-3">{`scripts/enchufar-blend-testnet.sh      # testnet
 scripts/desplegar-mainnet.sh           # mainnet
 
-# después, las direcciones van en web/src/lib/config.ts`}</pre>
+# then, the addresses go in web/src/lib/config.ts`}</pre>
     </Panel>
   );
 }
@@ -1022,13 +1021,13 @@ function Cartel({ m, tono, red }: { m: Mensaje; tono: "verde" | "rojo"; red?: st
         <>
           {" "}
           <a href={explorer(red, "tx", m.tx)} target="_blank" rel="noreferrer">
-            Ver transacción
+            View transaction
           </a>
         </>
       )}
       {m.detalle && (
         <details>
-          <summary>Detalle técnico</summary>
+          <summary>Technical details</summary>
           <p>{m.detalle}</p>
         </details>
       )}
@@ -1042,62 +1041,62 @@ function mensaje(e: unknown): Mensaje {
 
   // Wallet
   if (crudo.includes("User declined") || crudo.includes("rejected")) {
-    return { texto: "Cancelaste la firma en la wallet. No pasó nada." };
+    return { texto: "You cancelled the signature in the wallet. Nothing happened." };
   }
-  if (crudo.includes("no respondió")) {
-    return con("La wallet no respondió. Fijate que esté abierta y en la red correcta, y probá de nuevo.");
+  if (crudo.includes("did not respond")) {
+    return con("The wallet did not respond. Check that it is open and on the right network, and try again.");
   }
 
   // Saldo y fees
   if (crudo.includes("balance is not within the allowed range")) {
-    return con("No te alcanza el saldo de la wallet para ese monto. Stellar además reserva 1 XLM que no se puede gastar.");
+    return con("Your wallet balance is not enough for that amount. Stellar also reserves 1 XLM that cannot be spent.");
   }
   if (crudo.includes("tx_insufficient_balance")) {
     // La red cobra el storage que crea la transacción. El primer depósito
     // del pozo arma el árbol del sorteo y paga su renta; los siguientes, no.
     const fee = /"fee_charged":"(\d+)"/.exec(crudo)?.[1];
-    const cuanto = fee ? `${aTexto(BigInt(fee), 2)} XLM` : "más XLM del que tenés libre";
+    const cuanto = fee ? `${aTexto(BigInt(fee), 2)} XLM` : "more XLM than you have free";
     return con(
-      `La red pide ${cuanto} de fee para esta transacción y tu wallet no tiene tanto XLM libre (Stellar reserva 1,5 XLM). Mandale XLM y volvé a intentar. Si venías de un cambio, el USDC ya está en tu wallet: elegí USDC y tocá Depositar.`,
+      `The network asks ${cuanto} in fees for this transaction and your wallet does not have that much free XLM (Stellar reserves 1.5 XLM). Send it some XLM and try again. If you came from a swap, the USDC is already in your wallet: pick USDC and tap Deposit.`,
     );
   }
   if (crudo.includes("tx_insufficient_fee")) {
-    return con("La red está cargada y la fee no alcanzó. Esperá unos segundos y probá de nuevo.");
+    return con("The network is busy and the fee was not enough. Wait a few seconds and try again.");
   }
 
   // Errores del pozo, por código
   const pozo: Record<string, string> = {
-    "#2": "El monto tiene que ser mayor a cero.",
-    "#3": "Estás intentando retirar más de lo que tenés en el pozo.",
-    "#4": "El pozo está lleno.",
-    "#5": "Esa wallet no tiene capital en el pozo.",
-    "#13": "El pozo llegó a su tope de capital. Probá con menos.",
-    "#14": "Hoy ya marcaste la racha. Mañana suma más.",
-    "#15": "Para marcar la racha tenés que tener capital adentro.",
-    "#16": "Ese link de invitación no es válido: el que invita tiene que estar en el pozo.",
-    "#17": "El link de invitación solo cuenta en tu primer depósito.",
+    "#2": "The amount has to be greater than zero.",
+    "#3": "You are trying to withdraw more than you have in the pool.",
+    "#4": "The pool is full.",
+    "#5": "That wallet has no capital in the pool.",
+    "#13": "The pool reached its capital cap. Try a smaller amount.",
+    "#14": "You already marked your streak today. Tomorrow counts for more.",
+    "#15": "You need capital in the pool to mark your streak.",
+    "#16": "That invite link is not valid: the referrer has to be in the pool.",
+    "#17": "The invite link only counts on your first deposit.",
   };
   const codigo = /Error\(Contract, (#\d+)\)/.exec(crudo)?.[1];
   if (codigo && pozo[codigo]) return con(pozo[codigo]);
 
   // Cambio
-  if (crudo.includes("nadie cotiza")) {
-    return con("No hay cotización para ese monto ahora, ni en Soroswap ni en el DEX. Probá con otro monto o en un rato.");
+  if (crudo.includes("no venue quotes")) {
+    return con("No quote for that amount right now, on Soroswap or on the DEX. Try another amount or come back in a while.");
   }
   if (crudo.includes("op_under_dest_min") || crudo.includes("op_too_few_offers")) {
-    return con("El precio se movió más de lo aceptado entre la cotización y la firma. No se cambió nada: probá de nuevo.");
+    return con("The price moved more than allowed between the quote and the signature. Nothing was swapped: try again.");
   }
   if (crudo.includes("deadline") || crudo.includes("Deadline")) {
-    return con("Tardaste más de diez minutos en firmar y la cotización venció. Probá de nuevo.");
+    return con("You took more than ten minutes to sign and the quote expired. Try again.");
   }
 
   // Red
-  if (crudo.includes("no entró") || crudo.includes("TRY_AGAIN_LATER")) {
-    return con("La transacción no llegó a entrar en la red. No se movió nada: probá de nuevo.");
+  if (crudo.includes("did not make it") || crudo.includes("TRY_AGAIN_LATER")) {
+    return con("The transaction did not make it into the network. Nothing moved: try again.");
   }
   if (crudo.includes("fetch") || crudo.includes("Failed to fetch") || crudo.includes("NetworkError")) {
-    return con("No pude hablar con la red de Stellar. Fijate tu conexión y probá de nuevo.");
+    return con("Could not reach the Stellar network. Check your connection and try again.");
   }
 
-  return con("Algo salió mal y no se completó. No se movió nada de tu wallet. Probá de nuevo; si sigue, el detalle técnico ayuda a entender qué pasó.");
+  return con("Something went wrong and it did not complete. Nothing moved from your wallet. Try again; if it keeps failing, the technical details help explain what happened.");
 }

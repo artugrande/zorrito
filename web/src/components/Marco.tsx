@@ -51,7 +51,7 @@ export function Marco({
             Zorrito
           </Link>
           <p className="header-tagline hidden truncate text-center sm:block">
-            Ahorrá. Nadie pierde. Uno gana el rendimiento.
+            Save. Nobody loses. One wins the yield.
           </p>
           <div className="flex items-center gap-2">
             <nav className="flex items-center gap-1.5 sm:gap-2">
@@ -70,11 +70,11 @@ export function Marco({
 
         <footer className="glass mt-10 flex w-full flex-col items-center gap-2 text-center">
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-            <span>Zorrito · Ahorro premiado sin pérdida de capital</span>
+            <span>Zorrito · The no-loss lottery on Stellar</span>
             <span>·</span>
             <Link href="/">App</Link>
             <span>·</span>
-            <Link href="/docs">Cómo funciona</Link>
+            <Link href="/docs">How it works</Link>
             <span>·</span>
             <a href="/deck">Pitch</a>
             <span>·</span>
@@ -95,7 +95,7 @@ export function Marco({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/soroswap.svg" alt="Soroswap" className="logo-soroswap" height={22} width={64} />
             </a>
-            <span className="marca">DEX de Stellar</span>
+            <span className="marca">Stellar DEX</span>
           </div>
         </footer>
       </div>

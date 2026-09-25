@@ -177,10 +177,10 @@ function armar(clave: ClavePozo, red: Red, id: string): Pozo | null {
     horizon: HORIZON[red],
     blendPool: BLEND_POOL[red],
     entradas: entradasDe(red),
-    nombre: principal ? "Zorrito" : "Pozo de prueba",
+    nombre: principal ? "Zorrito" : "Test pool",
     ritmo: principal
-      ? "Se sortea una vez por semana"
-      : "Rondas de 10 minutos en testnet, para verlo funcionar",
+      ? "Draws once a week"
+      : "10-minute rounds on testnet, to watch it work",
     ruta: principal ? "/" : "/test",
   };
 }

@@ -26,7 +26,7 @@ function conLimite<T>(p: Promise<T>, ms: number, que: string): Promise<T> {
     p,
     new Promise<never>((_, rechazar) =>
       setTimeout(
-        () => rechazar(new Error(`${que}: la wallet no respondió en ${ms}ms`)),
+        () => rechazar(new Error(`${que}: the wallet did not respond within ${ms}ms`)),
         ms,
       ),
     ),
