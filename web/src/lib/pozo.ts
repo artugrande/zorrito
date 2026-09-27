@@ -178,14 +178,16 @@ export type Ganador = {
  */
 export async function ganadores(p: Pozo, maximo = 10): Promise<Ganador[]> {
   const servidor = servidorDe(p.rpcUrl);
-  const ultimo = await servidor.getLatestLedger();
-  // ~7 días a 5s por ledger, que es lo que retiene el RPC público. Si pide
-  // más atrás de lo que tiene, el RPC contesta con error: se acota.
-  const desde = Math.max(1, ultimo.sequence - 120_000);
+  // Desde el ledger más viejo que el RPC retiene (~7 días en los públicos).
+  const salud = await servidor.getHealth();
+  const desde = Math.max(1, salud.oldestLedger + 1);
   const topico = nativeToScVal("sorteo_ejecutado", { type: "symbol" }).toXDR("base64");
   const salida: Ganador[] = [];
   let cursor: string | null = null;
-  for (let pagina = 0; pagina < 20; pagina++) {
+  // El RPC escanea un tramo acotado de ledgers por pedido y devuelve un cursor
+  // para seguir, aunque la página venga vacía: una página corta no significa
+  // que no haya más. Se sigue hasta que el cursor alcanza el último ledger.
+  for (let pagina = 0; pagina < 200; pagina++) {
     const filtros: rpc.Api.EventFilter[] = [
       { type: "contract", contractIds: [p.id], topics: [[topico, "*", "*"]] },
     ];
@@ -195,10 +197,17 @@ export async function ganadores(p: Pozo, maximo = 10): Promise<Ganador[]> {
         : { cursor, filters: filtros, limit: 200 },
     );
     for (const e of r.events) salida.push(leerGanador(e));
-    if (r.events.length < 200) break;
+    if (!r.cursor || r.cursor === cursor || ledgerDeCursor(r.cursor) >= r.latestLedger) break;
     cursor = r.cursor;
   }
   return salida.sort((a, b) => b.ronda - a.ronda).slice(0, maximo);
+}
+
+/** El ledger al que apunta un cursor de `getEvents` ("<toid>-<índice>"): el toid lleva el ledger en los 32 bits altos. */
+export function ledgerDeCursor(cursor: string): number {
+  const toid = cursor.split("-")[0];
+  if (!/^\d+$/.test(toid)) return 0;
+  return Number(BigInt(toid) >> 32n);
 }
 
 function leerGanador(e: rpc.Api.EventResponse): Ganador {

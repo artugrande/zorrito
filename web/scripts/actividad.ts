@@ -1,20 +1,20 @@
 /**
- * La actividad real del pozo de mainnet, leída de los eventos del contrato:
- * depósitos, retiros, rachas, referidos, cierres y sorteos, con la wallet, el
- * monto y la transacción de cada uno. Para mostrar en el README que el pozo
- * lo usa gente de verdad.
+ * La actividad real del pozo, leída de sus eventos: depósitos, retiros,
+ * rachas, referidos, cierres y sorteos, con la wallet, el monto y la
+ * transacción de cada uno. Para mostrar en el README que el pozo lo usa gente
+ * de verdad.
  *
  *   npx tsx scripts/actividad.ts             # mainnet
  *   npx tsx scripts/actividad.ts testnet
  *   npx tsx scripts/actividad.ts mainnet md  # además, la tabla en Markdown
  *
- * El RPC público retiene ~7 días de eventos; lo anterior no aparece. Para
- * la historia completa está stellar.expert, con el contrato del pozo.
+ * Los eventos vienen de la API de stellar.expert, que guarda la historia
+ * entera (el RPC público retiene ~7 días). stellar.expert no da el hash de la
+ * transacción, solo su posición en el ledger; el hash se busca en Horizon.
  */
 
-import { Address, rpc, scValToNative } from "@stellar/stellar-sdk";
-import { PRINCIPAL, TEST, type Red } from "../src/lib/config";
-import { servidorDe } from "../src/lib/contrato";
+import { scValToNative, xdr } from "@stellar/stellar-sdk";
+import { HORIZON, PRINCIPAL, TEST, type Red } from "../src/lib/config";
 import { aTexto } from "../src/lib/montos";
 
 type Evento = {
@@ -24,6 +24,14 @@ type Evento = {
   ledger: number;
   cuando: string;
   tx: string;
+};
+
+type RegistroExpert = {
+  id: string;
+  ts: number;
+  initiator?: string;
+  topics: string[];
+  bodyXdr: string;
 };
 
 const TIPOS: Record<string, string> = {
@@ -41,45 +49,54 @@ async function main() {
   const pozo = red === "testnet" ? TEST : PRINCIPAL;
   if (!pozo || pozo.red !== red) throw new Error(`there is no ${red} pool in config.ts`);
 
-  const servidor = servidorDe(pozo.rpcUrl);
-  // Desde el ledger más viejo que el RPC todavía tiene, para no pedir de más.
-  const salud = await servidor.getHealth();
-  const desde = Math.max(1, salud.oldestLedger + 1);
-  console.error(
-    `rpc ${pozo.rpcUrl}: ledgers ${salud.oldestLedger}..${salud.latestLedger} (retention ${salud.ledgerRetentionWindow})`,
-  );
+  const expert = `https://api.stellar.expert/explorer/${red === "mainnet" ? "public" : "testnet"}`;
+  const explorer = `https://stellar.expert/explorer/${red === "mainnet" ? "public" : "testnet"}`;
 
-  const eventos: Evento[] = [];
-  let crudos = 0;
-  const desconocidos = new Set<string>();
-  let cursor: string | null = null;
-  for (let pagina = 0; pagina < 50; pagina++) {
-    const filtros: rpc.Api.EventFilter[] = [{ type: "contract", contractIds: [pozo.id] }];
-    const r: rpc.Api.GetEventsResponse = await servidor.getEvents(
-      cursor === null
-        ? { startLedger: desde, filters: filtros, limit: 200 }
-        : { cursor, filters: filtros, limit: 200 },
-    );
-    crudos += r.events.length;
-    for (const e of r.events) {
-      const ev = leer(e);
-      if (ev) eventos.push(ev);
-      else desconocidos.add(describir(e));
-    }
-    if (r.events.length < 200) break;
-    cursor = r.cursor;
+  // Todas las páginas de eventos del contrato, de la más vieja a la más nueva.
+  const registros: RegistroExpert[] = [];
+  let url: string | null = `${expert}/contract/${pozo.id}/events?order=asc&limit=200`;
+  while (url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`stellar.expert: HTTP ${r.status} for ${url}`);
+    const j = (await r.json()) as {
+      _embedded: { records: RegistroExpert[] };
+      _links: { next?: { href: string } };
+    };
+    const lote = j._embedded.records;
+    registros.push(...lote);
+    url = lote.length === 200 && j._links.next ? `https://api.stellar.expert${j._links.next.href}` : null;
   }
-  console.error(`raw events: ${crudos}${desconocidos.size ? `; unrecognised: ${[...desconocidos].join(" | ")}` : ""}`);
 
-  const explorer =
-    red === "mainnet" ? "https://stellar.expert/explorer/public" : "https://stellar.expert/explorer/testnet";
+  const hashes = new Map<string, string>();
+  const eventos: Evento[] = [];
+  for (const r of registros) {
+    const tipo = r.topics[0];
+    if (!(tipo in TIPOS)) continue;
+    const cuenta = tipo === "sorteo_ejecutado" ? (r.topics[2] ?? null) : (r.topics[1] ?? null);
+    const datos = scValToNative(xdr.ScVal.fromXDR(r.bodyXdr, "base64")) as Record<string, unknown>;
+    const crudo = datos?.monto ?? datos?.premio;
+    const monto = typeof crudo === "bigint" ? crudo : typeof crudo === "number" ? BigInt(crudo) : null;
+    const toid = BigInt(r.id.split("-")[0]);
+    const ledger = Number(toid >> 32n);
+    const txToid = (toid & ~0xfffn).toString();
+    if (!hashes.has(txToid)) await hashesDelLedger(HORIZON[red], ledger, hashes);
+    eventos.push({
+      tipo,
+      cuenta,
+      monto,
+      ledger,
+      cuando: new Date(r.ts * 1000).toISOString(),
+      tx: hashes.get(txToid) ?? "",
+    });
+  }
+
   const wallets = new Set(eventos.filter((e) => e.cuenta).map((e) => e.cuenta as string));
   const cuenta = (tipo: string) => eventos.filter((e) => e.tipo === tipo).length;
   const suma = (tipo: string) =>
     eventos.filter((e) => e.tipo === tipo).reduce((s, e) => s + (e.monto ?? 0n), 0n);
 
   console.log(`Zorrito · ${red} · pool ${pozo.id}`);
-  console.log(`Events since ledger ${desde} (about the last 7 days; the RPC keeps no more)\n`);
+  console.log(`${registros.length} events on stellar.expert, full history\n`);
   console.log(`wallets: ${wallets.size}   deposits: ${cuenta("deposito")} (${aTexto(suma("deposito"), 2)} ${pozo.simbolo})   withdrawals: ${cuenta("retiro")} (${aTexto(suma("retiro"), 2)} ${pozo.simbolo})   streaks: ${cuenta("racha")}   referrals: ${cuenta("referido")}   rounds closed: ${cuenta("ronda_cerrada")}   draws: ${cuenta("sorteo_ejecutado")}\n`);
 
   console.log("when (UTC)           event         wallet                                                     amount        tx");
@@ -98,43 +115,18 @@ async function main() {
     for (const e of eventos) {
       const w = e.cuenta ? `[${corta(e.cuenta)}](${explorer}/account/${e.cuenta})` : "";
       const m = e.monto == null ? "" : `${aTexto(e.monto, 2)} ${pozo.simbolo}`;
-      console.log(
-        `| ${e.cuando.slice(0, 16).replace("T", " ")} | ${TIPOS[e.tipo]} | ${w} | ${m} | [${e.tx.slice(0, 8)}…](${explorer}/tx/${e.tx}) |`,
-      );
+      const t = e.tx ? `[${e.tx.slice(0, 8)}…](${explorer}/tx/${e.tx})` : "";
+      console.log(`| ${e.cuando.slice(0, 16).replace("T", " ")} | ${TIPOS[e.tipo]} | ${w} | ${m} | ${t} |`);
     }
   }
 }
 
-function leer(e: rpc.Api.EventResponse): Evento | null {
-  const tipo = scValToNative(e.topic[0]) as string;
-  if (!(tipo in TIPOS)) return null;
-  let cuenta: string | null = null;
-  // Depósitos, retiros, rachas y referidos llevan la wallet en el topic 1;
-  // el sorteo lleva la ronda en el 1 y el ganador en el 2.
-  const t = tipo === "sorteo_ejecutado" ? e.topic[2] : e.topic[1];
-  try {
-    cuenta = t ? Address.fromScVal(t).toString() : null;
-  } catch {
-    cuenta = null;
-  }
-  const datos = scValToNative(e.value) as Record<string, unknown>;
-  const crudo = datos?.monto ?? datos?.premio;
-  const monto = typeof crudo === "bigint" ? crudo : typeof crudo === "number" ? BigInt(crudo) : null;
-  return { tipo, cuenta, monto, ledger: e.ledger, cuando: e.ledgerClosedAt, tx: e.txHash };
-}
-
-/** Para diagnosticar un evento que no se reconoce: sus tópicos, como texto. */
-function describir(e: rpc.Api.EventResponse): string {
-  return e.topic
-    .map((t) => {
-      try {
-        const v = scValToNative(t);
-        return typeof v === "string" ? v : JSON.stringify(v, (_, x) => (typeof x === "bigint" ? x.toString() : x));
-      } catch {
-        return "?";
-      }
-    })
-    .join(",");
+/** Carga en `hashes` el hash de cada transacción del ledger, por su toid (paging_token de Horizon). */
+async function hashesDelLedger(horizon: string, ledger: number, hashes: Map<string, string>) {
+  const r = await fetch(`${horizon}/ledgers/${ledger}/transactions?limit=200&include_failed=true`);
+  if (!r.ok) return;
+  const j = (await r.json()) as { _embedded: { records: { hash: string; paging_token: string }[] } };
+  for (const t of j._embedded.records) hashes.set(t.paging_token, t.hash);
 }
 
 function corta(dir: string): string {
