@@ -56,7 +56,8 @@ async function main() {
   const registros: RegistroExpert[] = [];
   let url: string | null = `${expert}/contract/${pozo.id}/events?order=asc&limit=200`;
   while (url) {
-    const r = await fetch(url);
+    console.error(`fetching ${url}`);
+    const r = await traer(url);
     if (!r.ok) throw new Error(`stellar.expert: HTTP ${r.status} for ${url}`);
     const j = (await r.json()) as {
       _embedded: { records: RegistroExpert[] };
@@ -79,7 +80,10 @@ async function main() {
     const toid = BigInt(r.id.split("-")[0]);
     const ledger = Number(toid >> 32n);
     const txToid = (toid & ~0xfffn).toString();
-    if (!hashes.has(txToid)) await hashesDelLedger(HORIZON[red], ledger, hashes);
+    if (!hashes.has(txToid)) {
+      console.error(`ledger ${ledger}: looking up the transaction hash on Horizon`);
+      await hashesDelLedger(HORIZON[red], ledger, hashes);
+    }
     eventos.push({
       tipo,
       cuenta,
@@ -123,10 +127,18 @@ async function main() {
 
 /** Carga en `hashes` el hash de cada transacción del ledger, por su toid (paging_token de Horizon). */
 async function hashesDelLedger(horizon: string, ledger: number, hashes: Map<string, string>) {
-  const r = await fetch(`${horizon}/ledgers/${ledger}/transactions?limit=200&include_failed=true`);
-  if (!r.ok) return;
+  const r = await traer(`${horizon}/ledgers/${ledger}/transactions?limit=200&include_failed=true`);
+  if (!r.ok) {
+    console.error(`horizon: HTTP ${r.status} for ledger ${ledger}`);
+    return;
+  }
   const j = (await r.json()) as { _embedded: { records: { hash: string; paging_token: string }[] } };
   for (const t of j._embedded.records) hashes.set(t.paging_token, t.hash);
+}
+
+/** `fetch` con límite de tiempo, para que un pedido colgado no deje el script mudo. */
+function traer(url: string): Promise<Response> {
+  return fetch(url, { signal: AbortSignal.timeout(20_000), headers: { accept: "application/json" } });
 }
 
 function corta(dir: string): string {
