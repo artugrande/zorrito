@@ -42,10 +42,16 @@ async function main() {
   if (!pozo || pozo.red !== red) throw new Error(`there is no ${red} pool in config.ts`);
 
   const servidor = servidorDe(pozo.rpcUrl);
-  const ultimo = await servidor.getLatestLedger();
-  const desde = Math.max(1, ultimo.sequence - 120_000);
+  // Desde el ledger más viejo que el RPC todavía tiene, para no pedir de más.
+  const salud = await servidor.getHealth();
+  const desde = Math.max(1, salud.oldestLedger + 1);
+  console.error(
+    `rpc ${pozo.rpcUrl}: ledgers ${salud.oldestLedger}..${salud.latestLedger} (retention ${salud.ledgerRetentionWindow})`,
+  );
 
   const eventos: Evento[] = [];
+  let crudos = 0;
+  const desconocidos = new Set<string>();
   let cursor: string | null = null;
   for (let pagina = 0; pagina < 50; pagina++) {
     const filtros: rpc.Api.EventFilter[] = [{ type: "contract", contractIds: [pozo.id] }];
@@ -54,13 +60,16 @@ async function main() {
         ? { startLedger: desde, filters: filtros, limit: 200 }
         : { cursor, filters: filtros, limit: 200 },
     );
+    crudos += r.events.length;
     for (const e of r.events) {
       const ev = leer(e);
       if (ev) eventos.push(ev);
+      else desconocidos.add(describir(e));
     }
     if (r.events.length < 200) break;
     cursor = r.cursor;
   }
+  console.error(`raw events: ${crudos}${desconocidos.size ? `; unrecognised: ${[...desconocidos].join(" | ")}` : ""}`);
 
   const explorer =
     red === "mainnet" ? "https://stellar.expert/explorer/public" : "https://stellar.expert/explorer/testnet";
@@ -112,6 +121,20 @@ function leer(e: rpc.Api.EventResponse): Evento | null {
   const crudo = datos?.monto ?? datos?.premio;
   const monto = typeof crudo === "bigint" ? crudo : typeof crudo === "number" ? BigInt(crudo) : null;
   return { tipo, cuenta, monto, ledger: e.ledger, cuando: e.ledgerClosedAt, tx: e.txHash };
+}
+
+/** Para diagnosticar un evento que no se reconoce: sus tópicos, como texto. */
+function describir(e: rpc.Api.EventResponse): string {
+  return e.topic
+    .map((t) => {
+      try {
+        const v = scValToNative(t);
+        return typeof v === "string" ? v : JSON.stringify(v, (_, x) => (typeof x === "bigint" ? x.toString() : x));
+      } catch {
+        return t.switch().name;
+      }
+    })
+    .join(",");
 }
 
 function corta(dir: string): string {
