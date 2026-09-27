@@ -216,6 +216,7 @@ cd web && SOLO_MIRAR=1 npm run keeper     # watch-only loop from a terminal
 | `costo-deploy.ts G...` | What uploading the WASMs would cost, simulated |
 | `keeper.ts` | The keeper as a loop for a terminal |
 | `deck.mjs` (`npm run deck`) | Regenerates the pitch deck at `public/deck.html`, served at `/deck` |
+| `actividad.ts [mainnet\|testnet] [md]` | The pool's recent activity from its events: deposits, withdrawals, streaks, referrals, draws, with wallet and transaction; `md` also prints a Markdown table |
 | `drand-pk.ts` | Decompresses drand's group public key for the deploy |
 
 ## Documents
