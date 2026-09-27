@@ -131,7 +131,7 @@ function describir(e: rpc.Api.EventResponse): string {
         const v = scValToNative(t);
         return typeof v === "string" ? v : JSON.stringify(v, (_, x) => (typeof x === "bigint" ? x.toString() : x));
       } catch {
-        return t.switch().name;
+        return "?";
       }
     })
     .join(",");
