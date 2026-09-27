@@ -73,7 +73,10 @@ async function main() {
   for (const r of registros) {
     const tipo = r.topics[0];
     if (!(tipo in TIPOS)) continue;
-    const cuenta = tipo === "sorteo_ejecutado" ? (r.topics[2] ?? null) : (r.topics[1] ?? null);
+    // Depósitos, retiros, rachas y referidos llevan la wallet en el tópico 1;
+    // el sorteo, la ronda en el 1 y el ganador en el 2; el cierre, solo la ronda.
+    const cuenta =
+      tipo === "ronda_cerrada" ? null : tipo === "sorteo_ejecutado" ? (r.topics[2] ?? null) : (r.topics[1] ?? null);
     const datos = scValToNative(xdr.ScVal.fromXDR(r.bodyXdr, "base64")) as Record<string, unknown>;
     const crudo = datos?.monto ?? datos?.premio;
     const monto = typeof crudo === "bigint" ? crudo : typeof crudo === "number" ? BigInt(crudo) : null;
@@ -82,7 +85,7 @@ async function main() {
     const txToid = (toid & ~0xfffn).toString();
     if (!hashes.has(txToid)) {
       console.error(`ledger ${ledger}: looking up the transaction hash on Horizon`);
-      await hashesDelLedger(HORIZON[red], ledger, hashes);
+      hashes.set(txToid, await hashDeToid(HORIZON[red], txToid));
     }
     eventos.push({
       tipo,
@@ -90,7 +93,8 @@ async function main() {
       monto,
       ledger,
       cuando: new Date(r.ts * 1000).toISOString(),
-      tx: hashes.get(txToid) ?? "",
+      // Sin hash, stellar.expert igual resuelve la transacción por su toid.
+      tx: hashes.get(txToid) || txToid,
     });
   }
 
@@ -119,21 +123,27 @@ async function main() {
     for (const e of eventos) {
       const w = e.cuenta ? `[${corta(e.cuenta)}](${explorer}/account/${e.cuenta})` : "";
       const m = e.monto == null ? "" : `${aTexto(e.monto, 2)} ${pozo.simbolo}`;
-      const t = e.tx ? `[${e.tx.slice(0, 8)}…](${explorer}/tx/${e.tx})` : "";
+      const t = e.tx ? `[${e.tx.length === 64 ? e.tx.slice(0, 8) + "…" : "tx"}](${explorer}/tx/${e.tx})` : "";
       console.log(`| ${e.cuando.slice(0, 16).replace("T", " ")} | ${TIPOS[e.tipo]} | ${w} | ${m} | ${t} |`);
     }
   }
 }
 
-/** Carga en `hashes` el hash de cada transacción del ledger, por su toid (paging_token de Horizon). */
-async function hashesDelLedger(horizon: string, ledger: number, hashes: Map<string, string>) {
-  const r = await traer(`${horizon}/ledgers/${ledger}/transactions?limit=200&include_failed=true`);
+/**
+ * El hash de la transacción con ese toid (paging token de Horizon). El cursor
+ * es exclusivo: el primer registro después de `toid - 1` es el toid exacto,
+ * si existe.
+ */
+async function hashDeToid(horizon: string, txToid: string): Promise<string> {
+  const cursor = (BigInt(txToid) - 1n).toString();
+  const r = await traer(`${horizon}/transactions?cursor=${cursor}&order=asc&limit=1&include_failed=true`);
   if (!r.ok) {
-    console.error(`horizon: HTTP ${r.status} for ledger ${ledger}`);
-    return;
+    console.error(`horizon: HTTP ${r.status} for toid ${txToid}`);
+    return "";
   }
   const j = (await r.json()) as { _embedded: { records: { hash: string; paging_token: string }[] } };
-  for (const t of j._embedded.records) hashes.set(t.paging_token, t.hash);
+  const t = j._embedded.records[0];
+  return t && t.paging_token === txToid ? t.hash : "";
 }
 
 /** `fetch` con límite de tiempo, para que un pedido colgado no deje el script mudo. */
