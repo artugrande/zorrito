@@ -143,6 +143,44 @@ borrow USDC. Blend's Fixed pool has the USDC reserve at ~80 % utilisation
 paying ~8 % to lenders; the XLM reserve sits at 0.1 % and pays 0 %.
 `web/scripts/apy-blend.ts` prints the live table.
 
+## Real usage on mainnet
+
+Every event the mainnet pool has emitted since it went live on 15 September
+2026, read from the contract with `web/scripts/actividad.ts`. Three wallets
+have used it: the founder's and **two external users** who tested the product
+on their own. The pool has completed a full round on mainnet: it closed on
+23 September, the draw ran on 24 September with a real drand signature, and
+the yield went to the winner. Amounts are small on purpose: the contract is
+not audited yet and the pool is capped.
+
+| | |
+|---|---|
+| Distinct wallets | 3 (2 external) |
+| Deposits | 7, from 0.05 to 0.80 USDC |
+| Withdrawals | 4 |
+| Rounds closed | 1 |
+| Draws | 1, prize 0.0005922 USDC |
+
+| When (UTC) | Event | Wallet | Amount |
+|---|---|---|---|
+| 2026-09-15 14:21 | deposit | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.5857229 USDC |
+| 2026-09-15 14:29 | withdrawal | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.5857229 USDC |
+| 2026-09-15 15:01 | deposit | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.2847227 USDC |
+| 2026-09-15 23:25 | deposit | [GBF7…JWYC](https://stellar.expert/explorer/public/account/GBF74C6X24A2GUWELP42RDQXHIK5AC6WWRXKRZZGUBNDODJ3CQVPJWYC) (external) | 0.053218 USDC |
+| 2026-09-23 12:00 | round closed | | prize 0.0005922 USDC |
+| 2026-09-24 12:00 | draw, [tx 252a0f71…](https://stellar.expert/explorer/public/tx/252a0f71a1301daea49386c12cee2d64b1cddad61fc67a76425410562ca5cf5c) | winner [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.0005922 USDC |
+| 2026-09-25 15:30 | withdrawal, [tx ca94d107…](https://stellar.expert/explorer/public/tx/ca94d107e0512f6d8eb8b7ae08e961ce635c6d66c2f4363dea1834f977aaf304) | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.053218 USDC |
+| 2026-09-25 15:30 | deposit | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.6395331 USDC |
+| 2026-09-25 15:32 | withdrawal | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.8710378 USDC |
+| 2026-09-25 15:32 | deposit | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.80 USDC |
+| 2026-09-25 15:33 | withdrawal | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.80 USDC |
+| 2026-09-25 15:40 | deposit | [GDZP…3ANF](https://stellar.expert/explorer/public/account/GDZPBG6IKHQCDHFJDTL5IZZBCBK2X77EYCX3P7WMBFV2GRN6TFPD3ANF) | 0.80 USDC |
+| 2026-09-27 00:16 | deposit | [GCTV…PTLR](https://stellar.expert/explorer/public/account/GCTVEKUURYM4Q2TKY74NLF6GFXRLUQTFF5GAXJDCXMTAA3MITKODPTLR) (external) | 0.25 USDC |
+
+Every one of these is a public transaction on the
+[pool contract's page on stellar.expert](https://stellar.expert/explorer/public/contract/CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA).
+To refresh this table: `cd web && npx tsx scripts/actividad.ts mainnet md`.
+
 ## Risks, stated plainly
 
 - **Blend liquidity (medium).** Capital is lent out. If the pool is almost
