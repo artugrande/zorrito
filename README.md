@@ -10,6 +10,7 @@ Everybody else keeps exactly what they put in, and can withdraw at any time.
 - **How it works:** https://stellar.zorrito.app/docs
 - **Testnet playground** (10-minute rounds): https://stellar.zorrito.app/test
 - **Pitch deck:** https://stellar.zorrito.app/deck
+- **Pool contract on stellar.expert:** https://stellar.expert/explorer/public/contract/CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA
 
 Built for the **Argentina Builder Challenge** (BAF × Stellar), Genesis track.
 Live on Stellar mainnet with real money since September 2026.
@@ -106,21 +107,23 @@ script, as a serverless function triggered by cron and by page visits.
 
 **Mainnet** (the home page): USDC, weekly rounds, 5,000 USDC cap.
 
+Every address links to its page on stellar.expert.
+
 | | |
 |---|---|
-| Pool | `CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA` |
-| Blend adapter | `CD5XQWHFSW427KOQAMAXBMMM6X4BIH6AXZUP76PBB6SWYSSAA4D53MKC` |
-| Blend v2 pool (Fixed) | `CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD` |
-| Soroswap router | `CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH` |
+| Pool | [`CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA`](https://stellar.expert/explorer/public/contract/CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA) |
+| Blend adapter | [`CD5XQWHFSW427KOQAMAXBMMM6X4BIH6AXZUP76PBB6SWYSSAA4D53MKC`](https://stellar.expert/explorer/public/contract/CD5XQWHFSW427KOQAMAXBMMM6X4BIH6AXZUP76PBB6SWYSSAA4D53MKC) |
+| Blend v2 pool (Fixed) | [`CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD`](https://stellar.expert/explorer/public/contract/CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD) |
+| Soroswap router | [`CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH`](https://stellar.expert/explorer/public/contract/CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH) |
 
 **Testnet** (`/test`): XLM, 10-minute rounds, for seeing the whole cycle in
 minutes.
 
 | | |
 |---|---|
-| Pool | `CDNKUQX5YT5JYDF2UB3NZXI7UFKRKUTU7W23P42TLXUTGY4WE5IZI5X2` |
-| Blend adapter | `CCHLQA7SGZAEVGLAFUL4Y6DMBG7ZUZYSZZ7AGN44GNNJCCJ6VECV7ISA` |
-| Blend v2 pool (TestnetV2) | `CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF` |
+| Pool | [`CDNKUQX5YT5JYDF2UB3NZXI7UFKRKUTU7W23P42TLXUTGY4WE5IZI5X2`](https://stellar.expert/explorer/testnet/contract/CDNKUQX5YT5JYDF2UB3NZXI7UFKRKUTU7W23P42TLXUTGY4WE5IZI5X2) |
+| Blend adapter | [`CCHLQA7SGZAEVGLAFUL4Y6DMBG7ZUZYSZZ7AGN44GNNJCCJ6VECV7ISA`](https://stellar.expert/explorer/testnet/contract/CCHLQA7SGZAEVGLAFUL4Y6DMBG7ZUZYSZZ7AGN44GNNJCCJ6VECV7ISA) |
+| Blend v2 pool (TestnetV2) | [`CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF`](https://stellar.expert/explorer/testnet/contract/CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF) |
 
 All addresses are fixed in `web/src/lib/config.ts`. A new deploy is a commit.
 

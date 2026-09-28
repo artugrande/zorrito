@@ -86,7 +86,7 @@ export type Pozo = {
  * anterior. Para desarrollo local, NEXT_PUBLIC_POZO_LOCAL apunta el pozo de
  * prueba a otro.
  */
-const DIRECCIONES = {
+export const DIRECCIONES = {
   // Zorrito en mainnet: USDC, semanal, tope 5.000, generando en el pool Fixed
   // de Blend. (El primer deploy, CAR46DV7…UKQP, era de XLM y pagaba 0 %.)
   mainnet: "CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA",

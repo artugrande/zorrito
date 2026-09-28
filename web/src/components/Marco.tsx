@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
-import { RED, type Red } from "@/lib/config";
+import { DIRECCIONES, RED, type Red } from "@/lib/config";
 import { LogoBlend, LogoStellar } from "@/components/Logos";
+import { explorer } from "@/components/ui";
 
 /**
  * El marco común de todas las páginas: logo flotando, header de vidrio con
@@ -80,6 +81,15 @@ export function Marco({
             <span>·</span>
             <a href="https://github.com/artugrande/zorrito" target="_blank" rel="noopener">
               GitHub
+            </a>
+            <span>·</span>
+            <a
+              href={explorer(red, "contract", DIRECCIONES[red])}
+              target="_blank"
+              rel="noopener"
+              title="The pool contract on stellar.expert"
+            >
+              Contract
             </a>
           </div>
           <div className="marcas">

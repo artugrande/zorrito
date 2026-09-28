@@ -139,7 +139,7 @@ function main() {
         <h1>Try it on mainnet</h1>
         <p class="url">stellar.zorrito.app</p>
         <p class="lead ink">We are looking for an audit to raise the cap, and distribution with wallets and communities across Latin America.</p>
-        <p class="meta">github.com/artugrande/zorrito · stellar.zorrito.app/docs</p>
+        <p class="meta"><a href="https://github.com/artugrande/zorrito" target="_blank" rel="noopener">github.com/artugrande/zorrito</a> · <a href="https://stellar.zorrito.app/docs" target="_blank" rel="noopener">stellar.zorrito.app/docs</a> · <a href="https://stellar.expert/explorer/public/contract/CBPOMGHGCWH2QMG4V4FTZKGBCEN7K37R2OIDGD5VWBAKYTOWG7CDCGGA" target="_blank" rel="noopener">pool contract on stellar.expert</a></p>
         <div class="marcas">Powered by <span>Blend</span> · <span class="soro">${soroswap}</span> · <span>Stellar</span></div>
       </div>
     </section>`,
@@ -256,6 +256,8 @@ function main() {
   .lead.ink { color: var(--ink); font-size: 16px; }
   .url { font-family: "Baloo 2", sans-serif; font-size: 30px; font-weight: 800; }
   .meta { font-size: 12.5px; }
+  .meta a { color: var(--orange-deep); font-weight: 700; text-decoration: none; }
+  .meta a:hover { text-decoration: underline; }
   .marcas { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
   .marcas span { font-weight: 700; color: var(--ink); }
   .marcas .soro svg { height: 22px; width: auto; display: block; filter: invert(1) hue-rotate(180deg); }
